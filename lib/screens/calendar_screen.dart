@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../widgets/main_layout.dart';
+import '../dialogs/streak_detail_dialog.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -126,7 +127,7 @@ class CalendarScreenState extends State<CalendarScreen> {
                                     fontFamily: 'JetBrainsMono_Regular',
                                     fontSize: 32,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.orange,
+                                    color: Colors.black87,
                                   ),
                                 ),
                                 Text(
@@ -148,9 +149,20 @@ class CalendarScreenState extends State<CalendarScreen> {
                     ),
                   ),
                   // COLUMNA 2: Mascota
-                  Text(
-                    '🐯',
-                    style: TextStyle(fontSize: 80),
+                  GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => StreakDetailDialog(
+                          streakDays: 7,
+                          petEmoji: '🐯',
+                        ),
+                      );
+                    },
+                    child: Text(
+                      '🐯',
+                      style: TextStyle(fontSize: 80),
+                    ),
                   ),
                 ],
               ),
