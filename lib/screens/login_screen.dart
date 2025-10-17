@@ -1,60 +1,185 @@
 import 'package:flutter/material.dart';
 import '../routes.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  bool _obscurePassword = true;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Iniciar Sesión')),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Correo Electrónico',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            SizedBox(height: 20),
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Contraseña',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                // Lógica de login (por ahora solo regresa a welcome)
-                Navigator.pushReplacementNamed(context, Routes.welcome);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromARGB(255, 11, 80, 136),
-                minimumSize: Size(double.infinity, 50),
-              ),
-              child: Text(
-                'Iniciar Sesión',
-                style: TextStyle(fontSize: 18, color: Colors.white),
-              ),
-            ),
-            SizedBox(height: 10),
-            GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(context, Routes.register);
-              },
-              child: Text(
-                '¿No tienes cuenta? Regístrate',
-                style: TextStyle(
-                  color: Colors.orange,
-                  decoration: TextDecoration.underline,
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 32.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(height: 60),
+                
+                // ========== TÍTULO "LOGIN" ==========
+                Text(
+                  'Login',
+                  style: TextStyle(
+                    fontFamily: 'JetBrainsMono_Regular',
+                    fontSize: 32,
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: 1.0,
+                  ),
                 ),
-              ),
+                SizedBox(height: 60),
+                
+                // ========== CAMPO DE CORREO ELECTRÓNICO ==========
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Correo Electronico',
+                    style: TextStyle(
+                      fontFamily: 'JetBrainsMono_Regular',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 8),
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: 'ejemplo@correo.com',
+                    hintStyle: TextStyle(
+                      fontFamily: 'JetBrainsMono_Regular',
+                      color: Colors.grey[400],
+                      fontSize: 14,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                      borderSide: BorderSide(
+                        color: Colors.orange, // Borde naranja para el correo
+                        width: 1.5,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                      borderSide: BorderSide(
+                        color: Colors.orange, // Naranja cuando está enfocado
+                        width: 2,
+                      ),
+                    ),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                SizedBox(height: 24),
+                
+                // ========== CAMPO DE CONTRASEÑA CON OJITO ==========
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Contraseña',
+                    style: TextStyle(
+                      fontFamily: 'JetBrainsMono_Regular',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 8),
+                TextField(
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                    hintText: 'Contraseña segura',
+                    hintStyle: TextStyle(
+                      fontFamily: 'JetBrainsMono_Regular',
+                      color: Colors.grey[400],
+                      fontSize: 14,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                      borderSide: BorderSide(
+                        color: Colors.orange, // Borde naranja para la contraseña
+                        width: 1.5,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                      borderSide: BorderSide(
+                        color: Colors.orange, // Naranja cuando está enfocado
+                        width: 2,
+                      ),
+                    ),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                        color: Colors.grey[600],
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                SizedBox(height: 40),
+                
+                // ========== BOTÓN DE LOGIN ==========
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushReplacementNamed(context, Routes.home);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF003D82), // Azul oscuro del botón
+                    minimumSize: Size(double.infinity, 55),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    'Login',
+                    style: TextStyle(
+                      fontFamily: 'JetBrainsMono_Regular',
+                      fontSize: 18,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 120),
+                
+                // ========== TEXTO DE "¿HAS OLVIDADO TU CONTRASEÑA?" ==========
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(context, Routes.register);
+                  },
+                  child: Text(
+                    '¿Has olvidado tu contraseña?',
+                    style: TextStyle(
+                      fontFamily: 'JetBrainsMono_Regular',
+                      fontSize: 13,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

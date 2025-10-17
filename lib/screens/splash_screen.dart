@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import '../routes.dart';
 
 class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
   @override
-  _SplashScreenState createState() => _SplashScreenState();
+  SplashScreenState createState() => SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
@@ -15,6 +16,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   _navigateToWelcome() async {
     await Future.delayed(Duration(seconds: 3));
+    if (!mounted) return; // ✅ asegura que el widget sigue activo
     Navigator.pushReplacementNamed(context, Routes.welcome);
   }
 
@@ -28,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
             SizedBox(height: 20),
             Text(
               'KRONOS',
-              style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+              style: TextStyle(fontFamily: 'AldrichRegular', fontSize: 40, fontWeight: FontWeight.bold),
             ),
           ],
         ),
