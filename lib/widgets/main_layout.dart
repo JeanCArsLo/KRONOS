@@ -73,7 +73,7 @@ class _MainLayoutState extends State<MainLayout> {
                   // ========== NAVEGACIÓN ENTRE PANTALLAS ==========
                   switch (index) {
                     case 0:
-                      //Navigator.pushReplacementNamed(context, Routes.);
+                      Navigator.pushReplacementNamed(context, Routes.calendar);
                       break;
                     case 1:
                       // Navigator.pushReplacementNamed(context, Routes.);
