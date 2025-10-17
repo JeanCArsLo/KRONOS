@@ -61,74 +61,96 @@ class CalendarScreenState extends State<CalendarScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Fecha actual
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${_selectedDay.day}',
-                        style: TextStyle(
-                          fontFamily: 'JetBrainsMono_Regular',
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      Text(
-                        _getMonthYear(_selectedDay),
-                        style: TextStyle(
-                          fontFamily: 'JetBrainsMono_Regular',
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                  // Racha y mascota
+                  // COLUMNA 1: Fecha y Racha
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: Colors.orange,
                         width: 2,
                       ),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                    child: Row(
+                    padding: EdgeInsets.all(15),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                        // Fecha
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(Icons.local_fire_department,
-                                color: Colors.orange, size: 24),
                             Text(
-                              '07',
+                              '${_selectedDay.day}',
                               style: TextStyle(
                                 fontFamily: 'JetBrainsMono_Regular',
-                                fontSize: 14,
+                                fontSize: 32,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.orange,
+                                color: Colors.black87,
                               ),
                             ),
-                            Text(
-                              'racha',
-                              style: TextStyle(
-                                fontFamily: 'JetBrainsMono_Regular',
-                                fontSize: 9,
-                                color: Colors.orange,
-                              ),
+                            SizedBox(width: 10),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _getMonth(_selectedDay),
+                                  style: TextStyle(
+                                    fontFamily: 'JetBrainsMono_Regular',
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                                Text(
+                                  '${_selectedDay.year}',
+                                  style: TextStyle(
+                                    fontFamily: 'JetBrainsMono_Regular',
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                        SizedBox(width: 15),
-                        Text(
-                          '🐯',
-                          style: TextStyle(fontSize: 40),
+                        SizedBox(height: 15),
+                        // Racha
+                        Row(
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '07',
+                                  style: TextStyle(
+                                    fontFamily: 'JetBrainsMono_Regular',
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.orange,
+                                  ),
+                                ),
+                                Text(
+                                  'racha',
+                                  style: TextStyle(
+                                    fontFamily: 'JetBrainsMono_Regular',
+                                    fontSize: 10,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(width: 10),
+                            Icon(Icons.local_fire_department,
+                                color: Colors.orange, size: 32),
+                          ],
                         ),
                       ],
                     ),
+                  ),
+                  // COLUMNA 2: Mascota
+                  Text(
+                    '🐯',
+                    style: TextStyle(fontSize: 80),
                   ),
                 ],
               ),
@@ -219,7 +241,25 @@ class CalendarScreenState extends State<CalendarScreen> {
   }
 
   // ========== FUNCIÓN AUXILIAR PARA OBTENER MES Y AÑO ==========
-  String _getMonthYear(DateTime date) {
+  // String _getMonthYear(DateTime date) {
+  //   final months = [
+  //     'January',
+  //     'February',
+  //     'March',
+  //     'April',
+  //     'May',
+  //     'June',
+  //     'July',
+  //     'August',
+  //     'September',
+  //     'October',
+  //     'November',
+  //     'December'
+  //   ];
+  //   return '${months[date.month - 1]} ${date.year}';
+  // }
+  // ========== FUNCIÓN AUXILIAR PARA OBTENER SOLO EL MES ==========
+  String _getMonth(DateTime date) {
     final months = [
       'January',
       'February',
@@ -234,6 +274,6 @@ class CalendarScreenState extends State<CalendarScreen> {
       'November',
       'December'
     ];
-    return '${months[date.month - 1]} ${date.year}';
+    return months[date.month - 1];
   }
 }
