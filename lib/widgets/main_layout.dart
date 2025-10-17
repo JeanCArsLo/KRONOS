@@ -83,7 +83,7 @@ class _MainLayoutState extends State<MainLayout> {
                       break;
                     case 3:
                       
-                      // Navigator.pushReplacementNamed(context, Routes.workouts);
+                      Navigator.pushReplacementNamed(context, Routes.workouts);
                       break;
                     case 4:
                       // Navigator.pushReplacementNamed(context, Routes.profile);

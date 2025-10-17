@@ -5,6 +5,7 @@ import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/calendar_screen.dart';
+import 'screens/workout_area_screen.dart';
 
 class Routes {
   static const String splash = '/';
@@ -13,6 +14,7 @@ class Routes {
   static const String register = '/register';
   static const String home = '/home'; 
   static const String calendar = '/calendar'; 
+  static const String workouts = '/workouts'; 
 
 
   static Map<String, WidgetBuilder> getRoutes() {
@@ -23,6 +25,7 @@ class Routes {
       register: (context) => RegisterScreen(),
       home: (context) => HomeScreen(),
       calendar: (context) => CalendarScreen(),
+      workouts: (context) => WorkoutAreaScreen(),
     };
   }
 }
