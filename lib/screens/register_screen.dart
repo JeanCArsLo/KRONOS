@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../routes.dart';
+import '../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -11,6 +12,51 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+
+  // 🔥 CONTROLADORES
+  final _emailController = TextEditingController();
+  final _fullNameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
+  // 🔥 BACKEND
+  final AuthService _authService = AuthService();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _fullNameController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  // 🔥 FUNCIÓN REGISTRO (SIMPLE)
+  Future<void> _register() async {
+    try {
+      await _authService.register(
+        email: _emailController.text.trim(),
+        fullName: _fullNameController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('¡Cuenta creada exitosamente!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pushReplacementNamed(context, Routes.welcome);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +96,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 SizedBox(height: 8),
                 TextField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     hintText: 'ejemplo@correo.com',
                     hintStyle: TextStyle(
@@ -76,7 +124,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       vertical: 14,
                     ),
                   ),
-                  keyboardType: TextInputType.emailAddress,
                 ),
                 SizedBox(height: 20),
                 
@@ -94,6 +141,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 SizedBox(height: 8),
                 TextField(
+                  controller: _fullNameController,
                   decoration: InputDecoration(
                     hintText: 'Tus nombres y apellidos',
                     hintStyle: TextStyle(
@@ -137,6 +185,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 SizedBox(height: 8),
                 TextField(
+                  controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     hintText: 'Contraseña segura',
@@ -262,6 +311,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 SizedBox(height: 8),
                 TextField(
+                  controller: _confirmPasswordController,
                   obscureText: _obscureConfirmPassword,
                   decoration: InputDecoration(
                     hintText: 'Contraseña segura',
@@ -307,9 +357,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 
                 // ========== BOTÓN PARA CREAR CUENTA ==========
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, Routes.welcome);
-                  },
+                  onPressed: _register,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFFFF8C42), // Naranja del botón
                     minimumSize: Size(double.infinity, 55),

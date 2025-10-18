@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../routes.dart';
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,6 +11,52 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
+  // 🔥 CONTROLADORES (NUEVO)
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  // 🔥 BACKEND (NUEVO)
+  final AuthService _authService = AuthService();
+
+  @override
+  void dispose() {
+    _emailController.dispose();      // 🔥 AGREGADO
+    _passwordController.dispose();   // 🔥 AGREGADO
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    try {
+      final user = await _authService.login(
+        _emailController.text.trim(),  // 🔥 CAMBIO: email
+        _passwordController.text,
+      );
+
+      if (user != null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('¡Bienvenido ${user.fullName}!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pushReplacementNamed(context, Routes.home);
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Correo o contraseña incorrectos')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 SizedBox(height: 8),
                 TextField(
+                  controller: _emailController,
                   decoration: InputDecoration(
                     hintText: 'ejemplo@correo.com',
                     hintStyle: TextStyle(
@@ -94,6 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 SizedBox(height: 8),
                 TextField(
+                  controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     hintText: 'Contraseña segura',
@@ -139,9 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 
                 // ========== BOTÓN DE LOGIN ==========
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, Routes.home);
-                  },
+                  onPressed: _login,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFF003D82), // Azul oscuro del botón
                     minimumSize: Size(double.infinity, 55),
