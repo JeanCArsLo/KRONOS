@@ -86,11 +86,17 @@ flutter:
     - assets/workout_area/superior/pecho.jpg
     - assets/workout_area/superior/triceps.jpg
 
-    #por areas de los musculos
+    #la elpalda
     - assets/workout_area/superior/espalda/jalon_al_pecho.jpg
     - assets/workout_area/superior/espalda/remo_con_barra_inclinada.jpg
     - assets/workout_area/superior/espalda/remo_sentado.jpg
     - assets/workout_area/superior/espalda/remo_unilateral.jpg
+    #el pecho
+    - assets/workout_area/superior/Pecho/Apertura_en_maquina.jpg
+    - assets/workout_area/superior/Pecho/Cruce_de_poleas.jpg
+    - assets/workout_area/superior/Pecho/Press_de_banca_inclinado_con_banca.jpg
+    - assets/workout_area/superior/Pecho/Press_inclinado_con_mancuerna.jpg
+
 
 
   fonts:

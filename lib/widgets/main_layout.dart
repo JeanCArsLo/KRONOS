@@ -76,7 +76,7 @@ class _MainLayoutState extends State<MainLayout> {
                       Navigator.pushReplacementNamed(context, Routes.calendar);
                       break;
                     case 1:
-                      // Navigator.pushReplacementNamed(context, Routes.);
+                      Navigator.pushNamed(context, Routes.recordPR);
                       break;
                     case 2:
                       Navigator.pushReplacementNamed(context, Routes.home);

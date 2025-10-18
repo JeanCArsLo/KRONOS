@@ -8,6 +8,7 @@ import 'screens/calendar_screen.dart';
 import 'screens/workout_area_screen.dart';
 import 'screens/superior_exercises_screen.dart';
 import 'screens/exercise_detail_screen.dart';
+import 'screens/record_pr_screen.dart';
 
 class Routes {
   static const String splash = '/';
@@ -19,6 +20,8 @@ class Routes {
   static const String workouts = '/workouts'; 
   static const String superiorExercises = '/superior-exercises';
   static const String exerciseDetail = '/exercise-detail';
+  static const String recordPR = '/record-pr';
+
   static Map<String, WidgetBuilder> getRoutes() {
     return {
       splash: (context) => SplashScreen(),
@@ -29,6 +32,7 @@ class Routes {
       calendar: (context) => CalendarScreen(),
       workouts: (context) => WorkoutAreaScreen(),
       superiorExercises: (context) => SuperiorExercisesScreen(),
+      recordPR: (context) => RecordPRScreen(),
       exerciseDetail: (context) => ExerciseDetailScreen(
         exerciseTitle: ModalRoute.of(context)?.settings.arguments as String? ?? 'Espalda',
       ),
