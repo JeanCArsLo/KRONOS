@@ -15,6 +15,9 @@ class HomeScreenState extends State<HomeScreen> {
   final List<String> carouselImages = [
     'assets/gym/gym1.jpg',
     'assets/gym/gym2.jpg',
+    'assets/gym/gym3.jpg',
+    'assets/gym/gym4.jpg',
+    'assets/gym/gym5.jpg',
   ];
 
   // ========== LISTA DE ENTRENADORES ==========

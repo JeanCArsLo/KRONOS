@@ -58,13 +58,17 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
-    - assets/welcome/welcome.jpg
-    - assets/welcome/welcome2.jpg
-    - assets/welcome/welcome3.jpg
+    - assets/welcome/welcome.png
+    - assets/welcome/welcome2.png
+    - assets/welcome/welcome3.png
     - assets/welcome/welcome4.jpg
+    - assets/welcome/welcome5.png
     #Imagenes del gym
     - assets/gym/gym1.jpg
     - assets/gym/gym2.jpg
+    - assets/gym/gym3.jpg
+    - assets/gym/gym4.jpg
+    - assets/gym/gym5.jpg
     #Imagenes del los entrenadores
     - assets/trainers/trainer1.jpg
     - assets/trainers/trainer2.jpg

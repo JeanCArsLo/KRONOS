@@ -12,18 +12,20 @@ class WelcomeScreen extends StatefulWidget {
 class _WelcomeScreenState extends State<WelcomeScreen> {
   // ========== LISTA DE IMÁGENES DEL CARRUSEL ==========
   final List<String> imgList = [
-    'assets/welcome/welcome.jpg',
-    'assets/welcome/welcome2.jpg',
-    'assets/welcome/welcome3.jpg',
+    'assets/welcome/welcome.png',
+    'assets/welcome/welcome2.png',
+    'assets/welcome/welcome3.png',
     'assets/welcome/welcome4.jpg',
+    'assets/welcome/welcome5.png',
   ];
 
   // ========== TEXTOS PARA CADA IMAGEN ==========
   final List<String> textList = [
     'Tu viaje hacia una mejor versión empieza hoy, y no lo harás solo. ¡Bienvenido a Kronos Fit!',
-    'Transforma tu cuerpo y tu mente con nuestros planes personalizados',
-    'Entrena donde quieras, cuando quieras, a tu ritmo',
-    'Únete a nuestra comunidad y alcanza tus metas',
+    'Planifica y orgaliza tus rutinas facilmente. Con nuestro calendario interactivo, entrenar será parte de tu día',
+    'Motivate con tu mascota virtual. Tu compañero de entrenamiento que celebra cada logro contigo',
+    'Registra tu progreso y supera tus récords personales. Convierte cada sesión en una oportunidad para avanzar',
+    'Kronos Fit: constancia, motivación y bienestar en un solo lugar. Tu espacio digital para contruir un estilo de vida saludable!',
   ];
 
   // ========== ÍNDICE ACTUAL DEL CARRUSEL ==========
@@ -100,7 +102,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   style: TextStyle(
                     fontFamily: 'JetBrainsMono_Regular',
                     color: const Color.fromARGB(255, 0, 0, 0),
-                    fontSize: 18,
+                    fontSize: 15,
                     fontWeight: FontWeight.w600,
                     height: 1.4,
                   ),
