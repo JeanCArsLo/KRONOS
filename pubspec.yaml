@@ -74,6 +74,21 @@ flutter:
     - assets/workout_area/tren_superior.jpg
     - assets/workout_area/tren_inferior.jpg
 
+    #por areas de los musculos
+    - assets/workout_area/superior/antebrazo.jpg
+    - assets/workout_area/superior/biceps.jpg
+    - assets/workout_area/superior/espalda.jpg
+    - assets/workout_area/superior/hombro.jpg
+    - assets/workout_area/superior/pecho.jpg
+    - assets/workout_area/superior/triceps.jpg
+
+    #por areas de los musculos
+    - assets/workout_area/superior/espalda/jalon_al_pecho.jpg
+    - assets/workout_area/superior/espalda/remo_con_barra_inclinada.jpg
+    - assets/workout_area/superior/espalda/remo_sentado.jpg
+    - assets/workout_area/superior/espalda/remo_unilateral.jpg
+
+
   fonts:
       - family: SFPro
         fonts:

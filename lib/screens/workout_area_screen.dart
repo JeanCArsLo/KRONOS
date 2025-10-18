@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/main_layout.dart';
-
+import '../routes.dart';
 class WorkoutAreaScreen extends StatefulWidget {
   const WorkoutAreaScreen({super.key});
 
@@ -56,6 +56,7 @@ class WorkoutAreaScreenState extends State<WorkoutAreaScreen> {
                   padding: EdgeInsets.only(bottom: 15),
                   child: GestureDetector(
                     onTap: () {
+                      Navigator.pushNamed(context, Routes.superiorExercises);
                       // ========== AQUÍ VA LA LÓGICA CUANDO SELECCIONES UN ÁREA ==========
                       // Por ejemplo: navegar a pantalla de ejercicios, abrir dialog, etc.
                     },
