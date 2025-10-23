@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../widgets/main_layout.dart';
 import '../routes.dart';
+import '../db/database_helper.dart';
+import '../models/ejercicios.dart';
+
 class WorkoutAreaScreen extends StatefulWidget {
   const WorkoutAreaScreen({super.key});
 
@@ -9,19 +12,22 @@ class WorkoutAreaScreen extends StatefulWidget {
 }
 
 class WorkoutAreaScreenState extends State<WorkoutAreaScreen> {
-  // ========== LISTA DE ÁREAS DE ENTRENAMIENTO ==========
-  final List<Map<String, String>> workoutAreas = [
-    {
-      'title': 'TREN\nSUPERIOR',
-      'image': 'assets/workout_area/tren_superior.jpg',
-      'description': 'Ejercicios para pecho, espalda, hombros y brazos.',
-    },
-    {
-      'title': 'TREN\nINFERIOR',
-      'image': 'assets/workout_area/tren_inferior.jpg',
-      'description': 'Ejercicios para piernas, glúteos y pantorrillas.',
-    },
-  ];
+  late DatabaseHelper _dbHelper;
+  late List<PartesCuerpo> workoutAreas = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _dbHelper = DatabaseHelper();
+    _loadWorkoutAreas();
+  }
+
+  Future<void> _loadWorkoutAreas() async {
+    final result = await _dbHelper.getPartesCuerpo();
+    setState(() {
+      workoutAreas = result.map((map) => PartesCuerpo.fromMap(map)).toList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,16 +55,16 @@ class WorkoutAreaScreenState extends State<WorkoutAreaScreen> {
 
             // ========== LISTA DE ÁREAS DE ENTRENAMIENTO ==========
             Column(
-              children: workoutAreas.asMap().entries.map((entry) {
-                Map<String, String> workout = entry.value;
-
+              children: workoutAreas.map((area) {
                 return Padding(
                   padding: EdgeInsets.only(bottom: 15),
                   child: GestureDetector(
                     onTap: () {
-                      Navigator.pushNamed(context, Routes.superiorExercises);
-                      // ========== AQUÍ VA LA LÓGICA CUANDO SELECCIONES UN ÁREA ==========
-                      // Por ejemplo: navegar a pantalla de ejercicios, abrir dialog, etc.
+                      Navigator.pushNamed(
+                        context,
+                        Routes.superiorExercises,
+                        arguments: area.idPartesC,
+                      );
                     },
                     child: Container(
                       width: MediaQuery.of(context).size.width * 0.9, // 90% of screen width for padding
@@ -66,7 +72,9 @@ class WorkoutAreaScreenState extends State<WorkoutAreaScreen> {
                       margin: EdgeInsets.symmetric(horizontal: 10), // Horizontal margin for edge spacing
                       decoration: BoxDecoration(
                         image: DecorationImage(
-                          image: AssetImage(workout['image']!),
+                          image: AssetImage(
+                            'assets/workout_area/${area.nombre.toLowerCase().replaceAll(' ', '_')}.jpg',
+                          ),
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -84,11 +92,11 @@ class WorkoutAreaScreenState extends State<WorkoutAreaScreen> {
                         child: Padding(
                           padding: EdgeInsets.all(20),
                           child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end, // Center vertically
-                            crossAxisAlignment: CrossAxisAlignment.start, // Center horizontally
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                workout['title']!,
+                                area.nombre.split(' ').join('\n'), // Divide "Tren Superior" en líneas
                                 style: TextStyle(
                                   fontFamily: 'JetBrainsMono_Regular',
                                   fontSize: 20,

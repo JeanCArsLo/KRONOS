@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import '../widgets/main_layout.dart';
+import '../db/database_helper.dart';
+import 'dart:async'; // Para manejar Future en initState
+import '../widgets/add_weight.dart'; // Importamos el nuevo archivo
+import 'package:diacritic/diacritic.dart'; // Añade esta línea
 
 class ExerciseDetailScreen extends StatefulWidget {
-  final String exerciseTitle;
+  final int idPartesC;
+  final int idAreaM;
   
   const ExerciseDetailScreen({
     super.key,
-    required this.exerciseTitle,
+    required this.idPartesC,
+    required this.idAreaM,
   });
 
   @override
@@ -14,80 +20,145 @@ class ExerciseDetailScreen extends StatefulWidget {
 }
 
 class ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
-  // ========== MAPA DE EJERCICIOS CON SUS DETALLES ==========
-  final Map<String, Map<String, dynamic>> exercisesData = {
+  late DatabaseHelper _dbHelper;
+  String zonaNombre = ''; // Para almacenar el nombre de la zona muscular
+  Map<String, dynamic> currentExercise = {
+    'description': 'Cargando...',
+    'advice': 'Cargando...',
+    'variants': [],
+  }; // Inicialización con valores por defecto
+  late Map<String, bool> checkedVariants;
+  late Map<String, TextEditingController> weightControllers; // Restauramos los controladores
+
+  // Mapa estático para descripciones y consejos por nombre de zona
+  final Map<String, Map<String, String>> staticData = {
     'Espalda': {
       'description': 'Trabajo integral de espalda, mejora la postura, la fuerza y la estabilidad corporal. Una espalda fuerte protege la columna y equilibra el desarrollo muscular.',
       'advice': 'Realiza los ejercicios con peso moderado y buena técnica. Aumenta el peso sólo cuando controles el movimiento. La clave está en la forma, no sólo en la fuerza.',
-      'variants': [
-        {
-          'name': 'Jalón al pecho',
-          'description': 'Fortalece la parte superior de la espalda y mejora la postura.',
-          'series': '4x8-10',
-          'hypertrophy': '4x10-12',
-          'tonification': '3x12-15',
-          'image': 'assets/workout_area/superior/espalda/jalon_al_pecho.jpg',
-        },
-        {
-          'name': 'Remo sentado',
-          'description': 'Trabaja la espalda media y ayuda a definir los dorsales.',
-          'series': '4x8',
-          'hypertrophy': '4x10-12',
-          'tonification': '3x15',
-          'image': 'assets/workout_area/superior/espalda/remo_sentado.jpg',
-        },
-        {
-          'name': 'Remo unilateral',
-          'description': 'Aumenta grosor y fuerza en la espalda media.',
-          'series': '4x6-8',
-          'hypertrophy': '4x10',
-          'tonification': '3x12-15',
-          'image': 'assets/workout_area/superior/espalda/remo_unilateral.jpg',
-        },
-        {
-          'name': 'Remo con barra inclinado',
-          'description': 'Ejercicio completo que fortalece toda la espalda.',
-          'series': '4x5-6',
-          'hypertrophy': '4x8-10',
-          'tonification': '3x12',
-          'image': 'assets/workout_area/superior/espalda/remo_con_barra_inclinada.jpg',
-        },
-      ],
+    },
+    'Hombros': {
+      'description': 'Fortalecen los deltoides y músculos circundantes, mejorando la movilidad y estabilidad de la articulación. Es clave para movimientos de empuje y levantamiento.',
+      'advice': 'Usa pesos ligeros al inicio para dominar la técnica. Mantén los hombros relajados y evita movimientos bruscos para proteger las articulaciones.',
+    },
+    'Pecho': {
+      'description': 'Desarrolla los pectorales, mejorando la fuerza en movimientos de empuje y la estética torácica. También fortalece músculos estabilizadores del tronco.',
+      'advice': 'Controla la fase excéntrica (descenso) del movimiento. Mantén los hombros hacia atrás y el pecho elevado para maximizar la activación muscular.',
+    },
+    'Bíceps': {
+      'description': 'Trabaja los músculos del brazo anterior, esenciales para movimientos de tracción y levantamiento. Mejora la fuerza y definición del brazo.',
+      'advice': 'Evita balancear el cuerpo durante los curls. Mantén los codos fijos y concéntrate en contraer el bíceps en cada repetición.',
+    },
+    'Tríceps': {
+      'description': 'Fortalece los músculos posteriores del brazo, clave para movimientos de empuje y extensión. Mejora la estabilidad del codo y la fuerza general del brazo.',
+      'advice': 'Mantén los codos cerca del cuerpo en ejercicios como extensiones. Usa un rango de movimiento completo para activar todas las cabezas del tríceps.',
+    },
+    'Antebrazo': {
+      'description': 'Desarrolla la fuerza de agarre y la resistencia muscular, esenciales para ejercicios de tracción y levantamiento de peso. Mejora la funcionalidad diaria.',
+      'advice': 'Incorpora ejercicios específicos como flexiones de muñeca. No descuides el estiramiento para evitar rigidez y mejorar la movilidad.',
     },
   };
 
-  late Map<String, dynamic> currentExercise;
-  late Map<String, bool> checkedVariants;
+  // Series estáticas
+  final Map<String, String> staticSeries = {
+    'series': '4x8-10',
+    'hypertrophy': '4x10-12',
+    'tonification': '3x12-15',
+  };
 
   @override
   void initState() {
     super.initState();
-    currentExercise = exercisesData[widget.exerciseTitle]!;
-    checkedVariants = {
-      for (var variant in currentExercise['variants'])
-        variant['name']: false,
-    };
+    _dbHelper = DatabaseHelper();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final zona = await _dbHelper.getZonaMuscularById(widget.idAreaM);
+    if (zona != null) {
+      setState(() {
+        zonaNombre = zona['Nombre'];
+      });
+
+      final staticInfo = staticData[zonaNombre] ?? {
+        'description': 'Descripción no disponible',
+        'advice': 'Consejo no disponible',
+      };
+
+      final ejercicios = await _dbHelper.getEjerciciosByZona(widget.idAreaM);
+
+      final variants = ejercicios.map((ejercicio) {
+        final ejercicioNombreLower = removeDiacritics(ejercicio['Nombre']).toLowerCase().replaceAll(' ', '_');
+        final parteFolder = widget.idPartesC == 1 ? 'superior' : 'inferior';
+        final zonaFolder = removeDiacritics(zonaNombre).toLowerCase();
+        return {
+          'name': ejercicio['Nombre'],
+          'description': ejercicio['Descripcion'] ?? 'Sin descripción',
+          'series': staticSeries['series'],
+          'hypertrophy': staticSeries['hypertrophy'],
+          'tonification': staticSeries['tonification'],
+          'image': 'assets/workout_area/$parteFolder/$zonaFolder/$ejercicioNombreLower.jpg',
+          'idEjercicio': ejercicio['IdEjercicio'],
+          'idPartesC': widget.idPartesC,
+          'idAreaM': widget.idAreaM,
+          'peso': ejercicio['Peso']?.toString() ?? 'No establecido',
+        };
+      }).toList();
+
+      setState(() {
+        currentExercise = {
+          'description': staticInfo['description'],
+          'advice': staticInfo['advice'],
+          'variants': variants,
+        };
+        checkedVariants = {
+          for (var variant in variants) variant['name']: false,
+        };
+        weightControllers = {
+          for (var variant in variants) variant['name']: TextEditingController(text: variant['peso'] ?? ''), // Restauramos los controladores
+        };
+      });
+    } else {
+      setState(() {
+        zonaNombre = 'Zona no encontrada';
+        currentExercise = {
+          'description': 'Error al cargar datos',
+          'advice': 'Error al cargar datos',
+          'variants': [],
+        };
+        checkedVariants = {};
+        weightControllers = {};
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    for (var controller in weightControllers.values) {
+      controller.dispose(); // Restauramos la limpieza de controladores
+    }
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (zonaNombre.isEmpty) {
+      return MainLayout(
+        currentIndex: 3,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return MainLayout(
       currentIndex: 3,
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ========== HEADER ==========
-            Divider(
-              color: const Color.fromARGB(255, 0, 4, 255),
-              thickness: 2,
-              indent: 20,
-              endIndent: 20,
-            ),
+            Divider(color: const Color.fromARGB(255, 0, 4, 255), thickness: 2, indent: 20, endIndent: 20),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Text(
-                widget.exerciseTitle.toUpperCase(),
+                zonaNombre.toUpperCase(),
                 style: TextStyle(
                   fontFamily: 'JetBrainsMono_Regular',
                   fontSize: 14,
@@ -96,49 +167,24 @@ class ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 ),
               ),
             ),
-            Divider(
-              color: const Color.fromARGB(255, 0, 4, 255),
-              thickness: 2,
-              indent: 20,
-              endIndent: 20,
-            ),
+            Divider(color: const Color.fromARGB(255, 0, 4, 255), thickness: 2, indent: 20, endIndent: 20),
 
             SizedBox(height: 20),
 
-            // ========== DESCRIPCIÓN ==========
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 15),
               child: Container(
                 padding: EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  border: Border.all(
-                    color: const Color.fromARGB(255, 255, 140, 0),
-                    width: 2,
-                  ),
+                  border: Border.all(color: const Color.fromARGB(255, 255, 140, 0), width: 2),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Descripción:',
-                      style: TextStyle(
-                        fontFamily: 'JetBrainsMono_Regular',
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+                    Text('Descripción:', style: TextStyle(fontFamily: 'JetBrainsMono_Regular', fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                     SizedBox(height: 8),
-                    Text(
-                      currentExercise['description'],
-                      style: TextStyle(
-                        fontFamily: 'JetBrainsMono_Regular',
-                        fontSize: 11,
-                        height: 1.5,
-                        color: const Color.fromARGB(255, 0, 0, 0),
-                      ),
-                    ),
+                    Text(currentExercise['description'] ?? 'Sin descripción', style: TextStyle(fontFamily: 'JetBrainsMono_Regular', fontSize: 11, height: 1.5, color: const Color.fromARGB(255, 0, 0, 0))),
                   ],
                 ),
               ),
@@ -146,40 +192,20 @@ class ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
             SizedBox(height: 15),
 
-            // ========== CONSEJO ==========
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 15),
               child: Container(
                 padding: EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  border: Border.all(
-                    color: const Color.fromARGB(255, 255, 140, 0),
-                    width: 2,
-                  ),
+                  border: Border.all(color: const Color.fromARGB(255, 255, 140, 0), width: 2),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Consejo:',
-                      style: TextStyle(
-                        fontFamily: 'JetBrainsMono_Regular',
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+                    Text('Consejo:', style: TextStyle(fontFamily: 'JetBrainsMono_Regular', fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                     SizedBox(height: 8),
-                    Text(
-                      currentExercise['advice'],
-                      style: TextStyle(
-                        fontFamily: 'JetBrainsMono_Regular',
-                        fontSize: 11,
-                        height: 1.5,
-                        color: const Color.fromARGB(255, 0, 0, 0),
-                      ),
-                    ),
+                    Text(currentExercise['advice'] ?? 'Sin consejo', style: TextStyle(fontFamily: 'JetBrainsMono_Regular', fontSize: 11, height: 1.5, color: const Color.fromARGB(255, 0, 0, 0))),
                   ],
                 ),
               ),
@@ -187,208 +213,139 @@ class ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
             SizedBox(height: 20),
 
-            // ========== VARIANTES DE EJERCICIOS (IMAGEN IZQUIERDA + INFO DERECHA) ==========
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 15),
-              child: Column(
-                children: List.generate(
-                  currentExercise['variants'].length,
-                  (index) {
-                    var variant = currentExercise['variants'][index];
-                    return Padding(
-                      padding: EdgeInsets.only(bottom: 20),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: const Color.fromARGB(255, 0, 0, 0),
-                            width: 1,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.all(12),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // ========== IMAGEN A LA IZQUIERDA ==========
-                              GestureDetector(
-                                onTap: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => Dialog(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                        side: BorderSide(
-                                          color: const Color.fromARGB(255, 255, 140, 0),
-                                          width: 3,
-                                        ),
-                                      ),
-                                      backgroundColor: Colors.white,
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(17),
-                                            child: Image.asset(
-                                              variant['image'],
-                                              fit: BoxFit.contain,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                },
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.asset(
-                                    variant['image'],
-                                    width: 120,
-                                    height: 120,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
+              child: currentExercise['variants'].isEmpty
+                  ? Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Text(
+                        'Ejercicios no encontrados',
+                        style: TextStyle(fontFamily: 'JetBrainsMono_Regular', fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
+                      ),
+                    )
+                  : Column(
+                      children: List.generate(
+                        currentExercise['variants'].length,
+                        (index) {
+                          var variant = currentExercise['variants'][index];
+                          return Padding(
+                            padding: EdgeInsets.only(bottom: 20),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(color: const Color.fromARGB(255, 0, 0, 0), width: 1),
+                                borderRadius: BorderRadius.circular(8),
                               ),
-
-                              SizedBox(width: 12),
-
-                              // ========== INFO A LA DERECHA ==========
-                              Expanded(
-                                child: Column(
+                              child: Padding(
+                                padding: EdgeInsets.all(12),
+                                child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // ========== NOMBRE ==========
-                                    Text(
-                                      variant['name'],
-                                      style: TextStyle(
-                                        fontFamily: 'JetBrainsMono_Regular',
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 0.6,
+                                    GestureDetector(
+                                      onTap: () {
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) => Dialog(
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(20),
+                                              side: BorderSide(color: const Color.fromARGB(255, 255, 140, 0), width: 3),
+                                            ),
+                                            backgroundColor: Colors.white,
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                ClipRRect(
+                                                  borderRadius: BorderRadius.circular(17),
+                                                  child: Image.asset(
+                                                    variant['image'],
+                                                    fit: BoxFit.contain,
+                                                    errorBuilder: (context, error, stackTrace) => Icon(Icons.error, size: 120), // Manejo de error
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.asset(
+                                          variant['image'],
+                                          width: 120,
+                                          height: 120,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) => Icon(Icons.error), // Manejo de error
+                                        ),
                                       ),
                                     ),
-
-                                    SizedBox(height: 6),
-
-                                    // ========== DESCRIPCIÓN DEL EJERCICIO ==========
-                                    Text(
-                                      variant['description'],
-                                      style: TextStyle(
-                                        fontFamily: 'JetBrainsMono_Regular',
-                                        fontSize: 10,
-                                        color: const Color.fromARGB(255, 0, 0, 0),
-                                        height: 1.4,
-                                      ),
-                                    ),
-
-                                    SizedBox(height: 8),
-
-                                    // ========== SERIES Y REPS ==========
-                                    RichText(
-                                      text: TextSpan(
+                                    SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          TextSpan(
-                                            text: 'Series y reps\n',
-                                            style: TextStyle(
-                                              fontFamily: 'JetBrainsMono_Regular',
-                                              fontSize: 9,
-                                              fontWeight: FontWeight.bold,
-                                              color: const Color.fromARGB(255, 0, 0, 0),
+                                          Text(variant['name'], style: TextStyle(fontFamily: 'JetBrainsMono_Regular', fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 0.6)),
+                                          SizedBox(height: 6),
+                                          Text(variant['description'] ?? 'Sin descripción', style: TextStyle(fontFamily: 'JetBrainsMono_Regular', fontSize: 10, color: const Color.fromARGB(255, 0, 0, 0), height: 1.4)),
+                                          SizedBox(height: 8),
+                                          RichText(
+                                            text: TextSpan(
+                                              children: [
+                                                TextSpan(text: 'Series y reps\n', style: TextStyle(fontFamily: 'JetBrainsMono_Regular', fontSize: 9, fontWeight: FontWeight.bold, color: const Color.fromARGB(255, 0, 0, 0))),
+                                                TextSpan(text: 'Fuerza: ${variant['series']}\n', style: TextStyle(fontFamily: 'JetBrainsMono_Regular', fontSize: 8, color: const Color.fromARGB(255, 0, 0, 0))),
+                                                TextSpan(text: 'Hipertrofia: ${variant['hypertrophy']}\n', style: TextStyle(fontFamily: 'JetBrainsMono_Regular', fontSize: 8, color: const Color.fromARGB(255, 0, 0, 0))),
+                                                TextSpan(text: 'Tonificación: ${variant['tonification']}', style: TextStyle(fontFamily: 'JetBrainsMono_Regular', fontSize: 8, color: const Color.fromARGB(255, 0, 0, 0))),
+                                              ],
                                             ),
                                           ),
-                                          TextSpan(
-                                            text: 'Fuerza: ${variant['series']}\n',
-                                            style: TextStyle(
-                                              fontFamily: 'JetBrainsMono_Regular',
-                                              fontSize: 8,
-                                              color: const Color.fromARGB(255, 0, 0, 0),
-                                            ),
-                                          ),
-                                          TextSpan(
-                                            text: 'Hipertrofia: ${variant['hypertrophy']}\n',
-                                            style: TextStyle(
-                                              fontFamily: 'JetBrainsMono_Regular',
-                                              fontSize: 8,
-                                              color: const Color.fromARGB(255, 0, 0, 0),
-                                            ),
-                                          ),
-                                          TextSpan(
-                                            text: 'Tonificación: ${variant['tonification']}',
-                                            style: TextStyle(
-                                              fontFamily: 'JetBrainsMono_Regular',
-                                              fontSize: 8,
-                                              color: const Color.fromARGB(255, 0, 0, 0),
-                                            ),
+                                          SizedBox(height: 10),
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: TextField(
+                                                  controller: weightControllers[variant['name']],
+                                                  decoration: InputDecoration(
+                                                    hintText: 'Peso:',
+                                                    hintStyle: TextStyle(fontFamily: 'JetBrainsMono_Regular', fontSize: 9, color: Colors.grey[500]),
+                                                    contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                                    border: OutlineInputBorder(
+                                                      borderRadius: BorderRadius.circular(4),
+                                                      borderSide: BorderSide(color: Colors.grey[600]!),
+                                                    ),
+                                                  ),
+                                                  style: TextStyle(fontFamily: 'JetBrainsMono_Regular', fontSize: 10),
+                                                  keyboardType: TextInputType.number,
+                                                ),
+                                              ),
+                                              SizedBox(width: 10),
+                                              Container(
+                                                width: 40,
+                                                height: 40,
+                                                decoration: BoxDecoration(
+                                                  border: Border.all(color: const Color.fromARGB(255, 0, 0, 0), width: 1),
+                                                  borderRadius: BorderRadius.circular(4),
+                                                ),
+                                                child: Checkbox(
+                                                  value: checkedVariants[variant['name']] ?? false,
+                                                  onChanged: (value) {
+                                                    setState(() {
+                                                      checkedVariants[variant['name']] = value ?? false;
+                                                    });
+                                                  },
+                                                  activeColor: const Color.fromARGB(255, 255, 140, 0),
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
-                                    ),
-
-                                    SizedBox(height: 10),
-
-                                    // ========== INPUT Y CHECKBOX ==========
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: TextField(
-                                            decoration: InputDecoration(
-                                              hintText: 'Peso:',
-                                              hintStyle: TextStyle(
-                                                fontFamily: 'JetBrainsMono_Regular',
-                                                fontSize: 9,
-                                                color: Colors.grey[500],
-                                              ),
-                                              contentPadding: EdgeInsets.symmetric(
-                                                horizontal: 8,
-                                                vertical: 6,
-                                              ),
-                                              border: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(4),
-                                                borderSide: BorderSide(
-                                                  color: Colors.grey[600]!,
-                                                ),
-                                              ),
-                                            ),
-                                            style: TextStyle(
-                                              fontFamily: 'JetBrainsMono_Regular',
-                                              fontSize: 10,
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(width: 10),
-                                        Container(
-                                          width: 40,
-                                          height: 40,
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                              color: const Color.fromARGB(255, 0, 0, 0),
-                                              width: 1,
-                                            ),
-                                            borderRadius: BorderRadius.circular(4),
-                                          ),
-                                          child: Checkbox(
-                                            value: checkedVariants[variant['name']] ?? false,
-                                            onChanged: (value) {
-                                              setState(() {
-                                                checkedVariants[variant['name']] = value ?? false;
-                                              });
-                                            },
-                                            activeColor: const Color.fromARGB(255, 255, 140, 0),
-                                          ),
-                                        ),
-                                      ],
                                     ),
                                   ],
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
-              ),
+                    ),
             ),
 
             SizedBox(height: 20),
@@ -399,21 +356,7 @@ class ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 padding: EdgeInsets.only(bottom: 30),
                 child: ElevatedButton(
                   onPressed: () {
-                    // ========== LÓGICA AL GUARDAR ==========
-                    List<String> completedExercises = checkedVariants.entries
-                        .where((e) => e.value)
-                        .map((e) => e.key)
-                        .toList();
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          completedExercises.isEmpty
-                              ? 'Selecciona al menos un ejercicio'
-                              : 'Ejercicios guardados: ${completedExercises.join(", ")}',
-                        ),
-                      ),
-                    );
+                    AgregarPeso.guardarPesos(context, currentExercise, checkedVariants, weightControllers); // Restauramos weightControllers
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromARGB(255, 255, 140, 0),

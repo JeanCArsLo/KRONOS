@@ -35,7 +35,7 @@ dependencies:
   sqflite: ^2.3.3        # 🔥 SQLite
   path: ^1.9.0           # 🔥 Para rutas
   crypto: ^3.0.5         # 🔥 Para contraseñas
-
+  diacritic: ^0.1.5
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
@@ -78,29 +78,90 @@ flutter:
     - assets/trainers/trainer2.jpg
     - assets/trainers/trainer3.jpg
     - assets/trainers/trainer4.jpg
+
+
     #Imagenes de area de trabajo
     - assets/workout_area/tren_superior.jpg
     - assets/workout_area/tren_inferior.jpg
 
     #por areas de los musculos
     - assets/workout_area/superior/antebrazo.jpg
-    - assets/workout_area/superior/biceps.jpg
+    - assets/workout_area/superior/bíceps.jpg
     - assets/workout_area/superior/espalda.jpg
-    - assets/workout_area/superior/hombro.jpg
+    - assets/workout_area/superior/hombros.jpg
     - assets/workout_area/superior/pecho.jpg
-    - assets/workout_area/superior/triceps.jpg
+    - assets/workout_area/superior/tríceps.jpg
 
     #la elpalda
     - assets/workout_area/superior/espalda/jalon_al_pecho.jpg
     - assets/workout_area/superior/espalda/remo_con_barra_inclinada.jpg
     - assets/workout_area/superior/espalda/remo_sentado.jpg
     - assets/workout_area/superior/espalda/remo_unilateral.jpg
-    #el pecho
-    - assets/workout_area/superior/Pecho/Apertura_en_maquina.jpg
-    - assets/workout_area/superior/Pecho/Cruce_de_poleas.jpg
-    - assets/workout_area/superior/Pecho/Press_de_banca_inclinado_con_banca.jpg
-    - assets/workout_area/superior/Pecho/Press_inclinado_con_mancuerna.jpg
 
+    #el pecho
+    - assets/workout_area/superior/pecho/apertura_en_maquina.jpg
+    - assets/workout_area/superior/pecho/cruce_de_poleas.jpg
+    - assets/workout_area/superior/pecho/press_de_banca_inclinado_con_barra.jpg
+    - assets/workout_area/superior/pecho/press_inclinado_con_mancuerna.jpg
+
+    #el antebrazo
+    - assets/workout_area/superior/antebrazo/curl_inverso_con_disco.jpg
+    - assets/workout_area/superior/antebrazo/curl_de_munecas_con_barra.jpg
+    - assets/workout_area/superior/antebrazo/curl_de_munecas_inverso_con_mancuernas.jpg
+    - assets/workout_area/superior/antebrazo/rodillo_de_muneca.jpg
+
+    #el biceps
+    - assets/workout_area/superior/biceps/curl_barra_z.jpg
+    - assets/workout_area/superior/biceps/martillo.jpg
+    - assets/workout_area/superior/biceps/martillo_inclinado.jpg
+    - assets/workout_area/superior/biceps/predicador.jpg
+
+    #los hombros
+    - assets/workout_area/superior/hombros/cable_upright_row.jpg
+    - assets/workout_area/superior/hombros/elevacion_lateral.jpg
+    - assets/workout_area/superior/hombros/face_pull.jpg
+    - assets/workout_area/superior/hombros/press_militar_maquina.jpg
+
+    #los triceps
+    - assets/workout_area/superior/triceps/copa_unilateral.jpg
+    - assets/workout_area/superior/triceps/extencion_polea.jpg
+    - assets/workout_area/superior/triceps/extension_polea_alta.jpg
+    - assets/workout_area/superior/triceps/fondo_banco.jpg
+
+
+    #por areas de los musculos-tren inferior
+    - assets/workout_area/inferior/
+    - assets/workout_area/inferior/
+    - assets/workout_area/inferior/
+    - assets/workout_area/inferior/
+
+    #cuadriceps
+    - assets/workout_area/inferior/cuadriceps/extensiones.jpg
+    - assets/workout_area/inferior/cuadriceps/hack_squats.jpg
+    - assets/workout_area/inferior/cuadriceps/prensa.jpg
+    - assets/workout_area/inferior/cuadriceps/sentadilla_libre.jpg
+
+    #femoral
+    - assets/workout_area/inferior/femoral/aduccion.jpg
+    - assets/workout_area/inferior/femoral/femoral_acostado.jpg
+    - assets/workout_area/inferior/femoral/femoral_parado.jpg
+    - assets/workout_area/inferior/femoral/femoral_sentado.jpg
+    - assets/workout_area/inferior/femoral/peso_muerto.jpg
+
+    #gluteos
+    - assets/workout_area/inferior/gluteos/buenos_dias.jpg
+    - assets/workout_area/inferior/gluteos/Hip_thrust.jpg
+    - assets/workout_area/inferior/gluteos/hyperextension.jpg
+    - assets/workout_area/inferior/gluteos/patada_lateral.jpg
+    - assets/workout_area/inferior/gluteos/patada.jpg
+
+    #pantorrillas
+    - assets/workout_area/inferior/pantorrillas/curl_sentado.jpg
+    - assets/workout_area/inferior/pantorrillas/elevacion_talones_barra.jpg
+    - assets/workout_area/inferior/pantorrillas/elevacion_talones_convencional.jpg
+    - assets/workout_area/inferior/pantorrillas/elevacion_talones_maquina.jpg
+
+  
 
 
   fonts:

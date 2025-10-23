@@ -9,6 +9,7 @@ import 'screens/workout_area_screen.dart';
 import 'screens/superior_exercises_screen.dart';
 import 'screens/exercise_detail_screen.dart';
 import 'screens/record_pr_screen.dart';
+import '../models/ejercicios.dart';
 
 class Routes {
   static const String splash = '/';
@@ -31,11 +32,18 @@ class Routes {
       home: (context) => HomeScreen(),
       calendar: (context) => CalendarScreen(),
       workouts: (context) => WorkoutAreaScreen(),
-      superiorExercises: (context) => SuperiorExercisesScreen(),
-      recordPR: (context) => RecordPRScreen(),
-      exerciseDetail: (context) => ExerciseDetailScreen(
-        exerciseTitle: ModalRoute.of(context)?.settings.arguments as String? ?? 'Espalda',
+      superiorExercises: (context) => SuperiorExercisesScreen(
+        idPartesC: ModalRoute.of(context)?.settings.arguments as int?,
       ),
+      recordPR: (context) => RecordPRScreen(),
+
+      exerciseDetail: (context) {
+        final args = ModalRoute.of(context)?.settings.arguments as ZonaMuscular?;
+        return ExerciseDetailScreen(
+          idPartesC: args?.idPartesC ?? 1,
+          idAreaM: args?.idAreaM ?? 1,
+        );
+      },
     };
   }
   
