@@ -37,22 +37,22 @@ class RecordPRScreenState extends State<RecordPRScreen> {
     'Pecho': [
       {
         'name': 'Cruce de poleas',
-        'image': 'assets/workout_area/superior/Pecho/Cruce_de_poleas.jpg',
+        'image': 'assets/workout_area/superior/pecho/cruce_de_poleas.jpg',
         'exerciseTitle': 'Pecho',
       },
       {
         'name': 'Apertura en maquina',
-        'image': 'assets/workout_area/superior/Pecho/Apertura_en_maquina.jpg',
+        'image': 'assets/workout_area/superior/pecho/apertura_en_maquina.jpg',
         'exerciseTitle': 'Pecho',
       },
       {
         'name': 'Press inclinado con mancuerna',
-        'image': 'assets/workout_area/superior/Pecho/Press_inclinado_con_mancuerna.jpg',
+        'image': 'assets/workout_area/superior/pecho/press_inclinado_con_mancuerna.jpg',
         'exerciseTitle': 'Pecho',
       },
       {
         'name': 'Press de banca inclinado con banca',
-        'image': 'assets/workout_area/superior/Pecho/Press_de_banca_inclinado_con_banca.jpg',
+        'image': 'assets/workout_area/superior/pecho/press_de_banca_inclinado_con_barra.jpg',
         'exerciseTitle': 'Pecho',
       },
     ],
