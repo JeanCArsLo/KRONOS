@@ -19,7 +19,7 @@ class Routes {
   static const String home = '/home'; 
   static const String calendar = '/calendar'; 
   static const String workouts = '/workouts'; 
-  static const String superiorExercises = '/superior-exercises';
+  static const String bodyPartExercises = '/superior-exercises';
   static const String exerciseDetail = '/exercise-detail';
   static const String recordPR = '/record-pr';
 
@@ -32,7 +32,7 @@ class Routes {
       home: (context) => HomeScreen(),
       calendar: (context) => CalendarScreen(),
       workouts: (context) => WorkoutAreaScreen(),
-      superiorExercises: (context) => SuperiorExercisesScreen(
+      bodyPartExercises: (context) => BodyPartExercisesScreen(
         idPartesC: ModalRoute.of(context)?.settings.arguments as int?,
       ),
       recordPR: (context) => RecordPRScreen(),

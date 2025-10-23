@@ -87,6 +87,10 @@ class DatabaseHelper {
     await db.insert('ZonaMuscular', {'IdAreaM': 4, 'IdPartesC': 1, 'Nombre': 'Bíceps'});
     await db.insert('ZonaMuscular', {'IdAreaM': 5, 'IdPartesC': 1, 'Nombre': 'Tríceps'});
     await db.insert('ZonaMuscular', {'IdAreaM': 6, 'IdPartesC': 1, 'Nombre': 'Antebrazo'});
+    await db.insert('ZonaMuscular', {'IdAreaM': 7, 'IdPartesC': 2, 'Nombre': 'Cuádriceps'});
+    await db.insert('ZonaMuscular', {'IdAreaM': 8, 'IdPartesC': 2, 'Nombre': 'Femoral'});
+    await db.insert('ZonaMuscular', {'IdAreaM': 9, 'IdPartesC': 2, 'Nombre': 'Glúteos'});
+    await db.insert('ZonaMuscular', {'IdAreaM': 10, 'IdPartesC': 2, 'Nombre': 'Pantorrillas'});
 
     // Insertar ejercicios de ejemplo para Tren Superior
     //ESPALDA
@@ -187,6 +191,255 @@ class DatabaseHelper {
       'Descripcion': 'Ejercicio completo que fortalece antebrazos y mejora la resistencia del agarre.',
       'Peso': 0.0
     });
+
+    //Bíceps
+    await db.insert('Ejercicio', {
+      'IdPartesC': 1, // Tren Superior
+      'IdAreaM': 4,   // Bíceps
+      'Nombre': 'Curl con barra Z',
+      'Descripcion': 'Desarrolla el bíceps completo con menor tensión en las muñecas.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 1, // Tren Superior
+      'IdAreaM': 4,   // Bíceps
+      'Nombre': 'Curl martillo',
+      'Descripcion': 'Fortalece el bíceps y el braquial, aumentando el grosor del brazo.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 1, // Tren Superior
+      'IdAreaM': 4,   // Bíceps
+      'Nombre': 'Curl martillo inclinado',
+      'Descripcion': 'Trabaja el bíceps con mayor estiramiento y rango de movimiento.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 1, // Tren Superior
+      'IdAreaM': 4,   // Bíceps
+      'Nombre': 'Curl predicador',
+      'Descripcion': 'Aísla el bíceps eliminando el impulso y mejorando el pico muscular.',
+      'Peso': 0.0
+    });
+
+    //HOMBRO
+    await db.insert('Ejercicio', {
+      'IdPartesC': 1, // Tren Superior
+      'IdAreaM': 2,   // Hombros
+      'Nombre': 'Remo vertical con cable',
+      'Descripcion': 'Desarrolla los deltoides y trapecios, mejorando la anchura de hombros.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 1, // Tren Superior
+      'IdAreaM': 2,   // Hombros
+      'Nombre': 'Elevación lateral',
+      'Descripcion': 'Aísla el deltoides medio y aumenta la anchura de los hombros.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 1, // Tren Superior
+      'IdAreaM': 2,   // Hombros
+      'Nombre': 'Face pull',
+      'Descripcion': 'Fortalece el deltoides posterior y mejora la salud del hombro.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 1, // Tren Superior
+      'IdAreaM': 2,   // Hombros
+      'Nombre': 'Press militar en máquina',
+      'Descripcion': 'Desarrolla fuerza y masa en los deltoides con estabilidad controlada.',
+      'Peso': 0.0
+    });    
+
+    //Triceps
+    await db.insert('Ejercicio', {
+      'IdPartesC': 1, // Tren Superior
+      'IdAreaM': 5,   // Tríceps
+      'Nombre': 'Copa unilateral',
+      'Descripcion': 'Trabaja la cabeza larga del tríceps y mejora la simetría muscular.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 1, // Tren Superior
+      'IdAreaM': 5,   // Tríceps
+      'Nombre': 'Extensión en polea',
+      'Descripcion': 'Aísla el tríceps con tensión constante y mejora la definición.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 1, // Tren Superior
+      'IdAreaM': 5,   // Tríceps
+      'Nombre': 'Extensión en polea alta',
+      'Descripcion': 'Fortalece el tríceps completo con énfasis en la cabeza lateral.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 1, // Tren Superior
+      'IdAreaM': 5,   // Tríceps
+      'Nombre': 'Fondo en banco',
+      'Descripcion': 'Ejercicio compuesto que desarrolla fuerza y masa en el tríceps.',
+      'Peso': 0.0
+    });
+
+    // CUADRICEPS - IdAreaM: 7, IdPartesC: 2
+    await db.insert('Ejercicio', {
+      'IdPartesC': 2, // Tren Inferior
+      'IdAreaM': 7,   // Cuádriceps
+      'Nombre': 'Extensiones de cuádriceps',
+      'Descripcion': 'Aísla el cuádriceps y mejora la definición de la parte frontal del muslo.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 2, // Tren Inferior
+      'IdAreaM': 7,   // Cuádriceps
+      'Nombre': 'Hack squats',
+      'Descripcion': 'Desarrolla fuerza y masa en el cuádriceps con mayor estabilidad.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 2, // Tren Inferior
+      'IdAreaM': 7,   // Cuádriceps
+      'Nombre': 'Prensa de piernas',
+      'Descripcion': 'Ejercicio completo que fortalece cuádriceps y glúteos con alto peso.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 2, // Tren Inferior
+      'IdAreaM': 7,   // Cuádriceps
+      'Nombre': 'Sentadilla libre',
+      'Descripcion': 'Ejercicio fundamental que desarrolla fuerza y masa en todo el tren inferior.',
+      'Peso': 0.0
+    });
+
+    // FEMORAL - IdAreaM: 8, IdPartesC: 2
+    await db.insert('Ejercicio', {
+      'IdPartesC': 2, // Tren Inferior
+      'IdAreaM': 8,   // Femoral
+      'Nombre': 'Aducción de piernas',
+      'Descripcion': 'Trabaja los aductores y fortalece la parte interna del muslo.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 2, // Tren Inferior
+      'IdAreaM': 8,   // Femoral
+      'Nombre': 'Curl femoral acostado',
+      'Descripcion': 'Aísla los femorales en posición prona, mejorando la definición.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 2, // Tren Inferior
+      'IdAreaM': 8,   // Femoral
+      'Nombre': 'Curl femoral parado',
+      'Descripcion': 'Fortalece los femorales de forma unilateral mejorando el equilibrio.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 2, // Tren Inferior
+      'IdAreaM': 8,   // Femoral
+      'Nombre': 'Curl femoral sentado',
+      'Descripcion': 'Trabaja los femorales con énfasis en la contracción máxima.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 2, // Tren Inferior
+      'IdAreaM': 8,   // Femoral
+      'Nombre': 'Peso muerto',
+      'Descripcion': 'Ejercicio compuesto que desarrolla femorales, glúteos y espalda baja.',
+      'Peso': 0.0
+    });
+
+    // GLÚTEOS - IdAreaM: 9, IdPartesC: 2
+    await db.insert('Ejercicio', {
+      'IdPartesC': 2, // Tren Inferior
+      'IdAreaM': 9,   // Glúteos
+      'Nombre': 'Buenos días',
+      'Descripcion': 'Fortalece glúteos y femorales con énfasis en la cadena posterior.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 2, // Tren Inferior
+      'IdAreaM': 9,   // Glúteos
+      'Nombre': 'Hip thrust',
+      'Descripcion': 'Ejercicio clave para desarrollar fuerza y volumen en los glúteos.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 2, // Tren Inferior
+      'IdAreaM': 9,   // Glúteos
+      'Nombre': 'Hiperextensión',
+      'Descripcion': 'Trabaja glúteos, femorales y espalda baja mejorando la postura.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 2, // Tren Inferior
+      'IdAreaM': 9,   // Glúteos
+      'Nombre': 'Patada lateral',
+      'Descripcion': 'Aísla el glúteo medio y mejora la estabilidad de la cadera.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 2, // Tren Inferior
+      'IdAreaM': 9,   // Glúteos
+      'Nombre': 'Patada de glúteo',
+      'Descripcion': 'Activa y tonifica los glúteos con movimiento de extensión de cadera.',
+      'Peso': 0.0
+    });
+
+    // PANTORRILLAS - IdAreaM: 10, IdPartesC: 2
+    await db.insert('Ejercicio', {
+      'IdPartesC': 2, // Tren Inferior
+      'IdAreaM': 10,  // Pantorrillas
+      'Nombre': 'Curl de pantorrilla sentado',
+      'Descripcion': 'Trabaja el sóleo con las rodillas flexionadas mejorando la definición.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 2, // Tren Inferior
+      'IdAreaM': 10,  // Pantorrillas
+      'Nombre': 'Elevación de talones con barra',
+      'Descripcion': 'Desarrolla fuerza y masa en las pantorrillas con peso libre.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 2, // Tren Inferior
+      'IdAreaM': 10,  // Pantorrillas
+      'Nombre': 'Elevación de talones convencional',
+      'Descripcion': 'Ejercicio básico que fortalece los gemelos de forma efectiva.',
+      'Peso': 0.0
+    });
+
+    await db.insert('Ejercicio', {
+      'IdPartesC': 2, // Tren Inferior
+      'IdAreaM': 10,  // Pantorrillas
+      'Nombre': 'Elevación de talones en máquina',
+      'Descripcion': 'Aísla las pantorrillas con resistencia controlada y estable.',
+      'Peso': 0.0
+    });
+
+
   }
 
   // 🔐 HASH CONTRASEÑA

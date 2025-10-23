@@ -62,7 +62,7 @@ class WorkoutAreaScreenState extends State<WorkoutAreaScreen> {
                     onTap: () {
                       Navigator.pushNamed(
                         context,
-                        Routes.superiorExercises,
+                        Routes.bodyPartExercises,
                         arguments: area.idPartesC,
                       );
                     },

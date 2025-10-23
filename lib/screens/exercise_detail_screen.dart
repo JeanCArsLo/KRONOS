@@ -56,6 +56,23 @@ class ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       'description': 'Desarrolla la fuerza de agarre y la resistencia muscular, esenciales para ejercicios de tracción y levantamiento de peso. Mejora la funcionalidad diaria.',
       'advice': 'Incorpora ejercicios específicos como flexiones de muñeca. No descuides el estiramiento para evitar rigidez y mejorar la movilidad.',
     },
+    'Cuádriceps': {
+      'description': 'Fortalece los músculos frontales del muslo, esenciales para movimientos como caminar, correr y saltar. Mejora la estabilidad de la rodilla y la potencia en las piernas.',
+      'advice': 'Mantén las rodillas alineadas con los pies durante sentadillas y prensas. Controla el descenso para proteger las articulaciones y maximizar la activación muscular.'
+    },
+    'Femoral': {
+      'description': 'Trabaja los músculos posteriores del muslo, clave para la flexión de la rodilla y la extensión de la cadera. Equilibra la fuerza de las piernas y previene lesiones.',
+      'advice': 'Enfócate en la contracción al subir el peso en ejercicios como peso muerto rumano. Evita arquear la espalda y usa un rango de movimiento controlado.'
+    },
+    'Glúteos': {
+      'description': 'Desarrolla los músculos de la cadera, fundamentales para la estabilidad pélvica, la potencia en movimientos explosivos y una postura sólida.',
+      'advice': 'Activa los glúteos antes de entrenar con puentes o sentadillas ligeras. Mantén el core firme para evitar compensar con la espalda baja.'
+    },
+    'Pantorrillas': {
+      'description': 'Fortalece los músculos de la parte inferior de la pierna, esenciales para la propulsión al caminar, correr o saltar. Mejora la estabilidad del tobillo.',
+      'advice': 'Usa un rango completo de movimiento, estirando y contrayendo al máximo en cada repetición. Varía entre ejercicios con rodilla recta y flexionada para trabajar todas las fibras.'
+    },
+
   };
 
   // Series estáticas

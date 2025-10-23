@@ -4,15 +4,15 @@ import '../routes.dart';
 import '../db/database_helper.dart';
 import '../models/ejercicios.dart';
 
-class SuperiorExercisesScreen extends StatefulWidget {
-  final int? idPartesC; // Recibe el ID de la parte del cuerpo
-  const SuperiorExercisesScreen({super.key, this.idPartesC});
+class BodyPartExercisesScreen extends StatefulWidget {
+  final int? idPartesC; // Recibe el ID de la parte del cuerpo (1 = Superior, 2 = Inferior)
+  const BodyPartExercisesScreen({super.key, this.idPartesC});
 
   @override
-  SuperiorExercisesScreenState createState() => SuperiorExercisesScreenState();
+  BodyPartExercisesScreenState createState() => BodyPartExercisesScreenState();
 }
 
-class SuperiorExercisesScreenState extends State<SuperiorExercisesScreen> {
+class BodyPartExercisesScreenState extends State<BodyPartExercisesScreen> {
   late DatabaseHelper _dbHelper;
   late List<ZonaMuscular> zonas = [];
 
@@ -31,16 +31,16 @@ class SuperiorExercisesScreenState extends State<SuperiorExercisesScreen> {
             .map((map) => ZonaMuscular.fromMap(map))
             .where((zona) => zona.idPartesC == widget.idPartesC)
             .toList();
-       
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Debugging the received idPartesC
-
+    // Determine the folder and title based on idPartesC
+    String folder = widget.idPartesC == 1 ? 'superior' : 'inferior';
     String title = widget.idPartesC == 1 ? 'TREN SUPERIOR' : 'TREN INFERIOR';
+
     return MainLayout(
       currentIndex: 3,
       child: SingleChildScrollView(
@@ -112,7 +112,7 @@ class SuperiorExercisesScreenState extends State<SuperiorExercisesScreen> {
                                 borderRadius: BorderRadius.circular(8),
                                 image: DecorationImage(
                                   image: AssetImage(
-                                    'assets/workout_area/superior/${zona.nombre.toLowerCase()}.jpg',
+                                    'assets/workout_area/$folder/${zona.nombre.toLowerCase()}.jpg',
                                   ),
                                   fit: BoxFit.cover,
                                 ),

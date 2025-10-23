@@ -111,55 +111,55 @@ flutter:
     - assets/workout_area/superior/antebrazo/rodillo_de_muneca.jpg
 
     #el biceps
-    - assets/workout_area/superior/biceps/curl_barra_z.jpg
-    - assets/workout_area/superior/biceps/martillo.jpg
-    - assets/workout_area/superior/biceps/martillo_inclinado.jpg
-    - assets/workout_area/superior/biceps/predicador.jpg
+    - assets/workout_area/superior/biceps/curl_con_barra_z.jpg
+    - assets/workout_area/superior/biceps/curl_martillo.jpg
+    - assets/workout_area/superior/biceps/curl_martillo_inclinado.jpg
+    - assets/workout_area/superior/biceps/curl_predicador.jpg
 
     #los hombros
-    - assets/workout_area/superior/hombros/cable_upright_row.jpg
+    - assets/workout_area/superior/hombros/remo_vertical_con_cable.jpg
     - assets/workout_area/superior/hombros/elevacion_lateral.jpg
     - assets/workout_area/superior/hombros/face_pull.jpg
-    - assets/workout_area/superior/hombros/press_militar_maquina.jpg
+    - assets/workout_area/superior/hombros/press_militar_en_maquina.jpg
 
     #los triceps
     - assets/workout_area/superior/triceps/copa_unilateral.jpg
-    - assets/workout_area/superior/triceps/extencion_polea.jpg
-    - assets/workout_area/superior/triceps/extension_polea_alta.jpg
-    - assets/workout_area/superior/triceps/fondo_banco.jpg
+    - assets/workout_area/superior/triceps/extension_en_polea.jpg
+    - assets/workout_area/superior/triceps/extension_en_polea_alta.jpg
+    - assets/workout_area/superior/triceps/fondo_en_banco.jpg
 
 
     #por areas de los musculos-tren inferior
-    - assets/workout_area/inferior/
-    - assets/workout_area/inferior/
-    - assets/workout_area/inferior/
-    - assets/workout_area/inferior/
+    - assets/workout_area/inferior/cuádriceps.jpg
+    - assets/workout_area/inferior/pantorrillas.jpg
+    - assets/workout_area/inferior/glúteos.jpg
+    - assets/workout_area/inferior/femoral.jpg
 
     #cuadriceps
-    - assets/workout_area/inferior/cuadriceps/extensiones.jpg
+    - assets/workout_area/inferior/cuadriceps/extensiones_de_cuadriceps.jpg
     - assets/workout_area/inferior/cuadriceps/hack_squats.jpg
-    - assets/workout_area/inferior/cuadriceps/prensa.jpg
+    - assets/workout_area/inferior/cuadriceps/prensa_de_piernas.jpg
     - assets/workout_area/inferior/cuadriceps/sentadilla_libre.jpg
 
     #femoral
-    - assets/workout_area/inferior/femoral/aduccion.jpg
-    - assets/workout_area/inferior/femoral/femoral_acostado.jpg
-    - assets/workout_area/inferior/femoral/femoral_parado.jpg
-    - assets/workout_area/inferior/femoral/femoral_sentado.jpg
+    - assets/workout_area/inferior/femoral/aduccion_de_piernas.jpg
+    - assets/workout_area/inferior/femoral/curl_femoral_acostado.jpg
+    - assets/workout_area/inferior/femoral/curl_femoral_parado.jpg
+    - assets/workout_area/inferior/femoral/curl_femoral_sentado.jpg
     - assets/workout_area/inferior/femoral/peso_muerto.jpg
 
     #gluteos
     - assets/workout_area/inferior/gluteos/buenos_dias.jpg
-    - assets/workout_area/inferior/gluteos/Hip_thrust.jpg
-    - assets/workout_area/inferior/gluteos/hyperextension.jpg
+    - assets/workout_area/inferior/gluteos/hip_thrust.jpg
+    - assets/workout_area/inferior/gluteos/hiperextension.jpg
     - assets/workout_area/inferior/gluteos/patada_lateral.jpg
-    - assets/workout_area/inferior/gluteos/patada.jpg
+    - assets/workout_area/inferior/gluteos/patada_de_gluteo.jpg
 
     #pantorrillas
-    - assets/workout_area/inferior/pantorrillas/curl_sentado.jpg
-    - assets/workout_area/inferior/pantorrillas/elevacion_talones_barra.jpg
-    - assets/workout_area/inferior/pantorrillas/elevacion_talones_convencional.jpg
-    - assets/workout_area/inferior/pantorrillas/elevacion_talones_maquina.jpg
+    - assets/workout_area/inferior/pantorrillas/curl_de_pantorrilla_sentado.jpg
+    - assets/workout_area/inferior/pantorrillas/elevacion_de_talones_con_barra.jpg
+    - assets/workout_area/inferior/pantorrillas/elevacion_de_talones_convencional.jpg
+    - assets/workout_area/inferior/pantorrillas/elevacion_de_talones_en_maquina.jpg
 
   
 
