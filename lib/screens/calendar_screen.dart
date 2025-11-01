@@ -38,7 +38,7 @@ class CalendarScreenState extends State<CalendarScreen> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Text(
-                'CALENDARIO',
+                '  CALENDARIO',
                 style: TextStyle(
                   fontFamily: 'JetBrainsMono_Regular',
                   fontSize: 14,

@@ -175,7 +175,7 @@ class ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Text(
-                zonaNombre.toUpperCase(),
+                " ${zonaNombre.toUpperCase()}",
                 style: TextStyle(
                   fontFamily: 'JetBrainsMono_Regular',
                   fontSize: 14,
@@ -240,18 +240,24 @@ class ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                         style: TextStyle(fontFamily: 'JetBrainsMono_Regular', fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
                       ),
                     )
-                  : Column(
+                  : Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color.fromARGB(255, 0, 0, 0), width: 1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: EdgeInsets.all(12),
+                      child: Column(
                       children: List.generate(
                         currentExercise['variants'].length,
                         (index) {
                           var variant = currentExercise['variants'][index];
                           return Padding(
                             padding: EdgeInsets.only(bottom: 20),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(color: const Color.fromARGB(255, 0, 0, 0), width: 1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
+                            // child: Container(
+                            //   decoration: BoxDecoration(
+                            //     border: Border.all(color: const Color.fromARGB(255, 0, 0, 0), width: 1),
+                            //     borderRadius: BorderRadius.circular(8),
+                            //   ),
                               child: Padding(
                                 padding: EdgeInsets.all(12),
                                 child: Row(
@@ -263,8 +269,8 @@ class ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                                           context: context,
                                           builder: (context) => Dialog(
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(20),
-                                              side: BorderSide(color: const Color.fromARGB(255, 255, 140, 0), width: 3),
+                                              borderRadius: BorderRadius.circular(17),
+                                              side: BorderSide(color: const Color.fromARGB(255, 0, 26, 255), width: 3),
                                             ),
                                             backgroundColor: Colors.white,
                                             child: Column(
@@ -290,6 +296,7 @@ class ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                                           width: 120,
                                           height: 120,
                                           fit: BoxFit.cover,
+                                          alignment: Alignment.centerLeft,
                                           errorBuilder: (context, error, stackTrace) => Icon(Icons.error), // Manejo de error
                                         ),
                                       ),
@@ -337,7 +344,7 @@ class ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                                                 width: 40,
                                                 height: 40,
                                                 decoration: BoxDecoration(
-                                                  border: Border.all(color: const Color.fromARGB(255, 0, 0, 0), width: 1),
+                                                  border: Border.all(color: const Color.fromARGB(255, 255, 255, 255), width: 1),
                                                   borderRadius: BorderRadius.circular(4),
                                                 ),
                                                 child: Checkbox(
@@ -358,11 +365,12 @@ class ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                                   ],
                                 ),
                               ),
-                            ),
+                            
                           );
                         },
                       ),
                     ),
+                  ),
             ),
 
             SizedBox(height: 20),

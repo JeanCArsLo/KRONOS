@@ -120,7 +120,7 @@ class HomeScreenState extends State<HomeScreen> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Text(
-                'ENTRENADORES',
+                ' ENTRENADORES',
                 style: TextStyle(
                   fontFamily: 'JetBrainsMono_Regular',
                   fontSize: 14,

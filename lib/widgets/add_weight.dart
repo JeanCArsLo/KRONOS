@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../db/database_helper.dart';
+import '../dialogs/success_notification.dart'; // ← CAMBIO DE NOMBRE
 
 class AgregarPeso {
   static Future<void> guardarPesos(BuildContext context, Map<String, dynamic> currentExercise, Map<String, bool> checkedVariants, Map<String, TextEditingController> weightControllers) async {
@@ -10,9 +11,7 @@ class AgregarPeso {
         .toList();
 
     if (completedExercises.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Selecciona al menos un ejercicio')),
-      );
+      SuccessNotification.showError(context, 'Selecciona al menos un ejercicio'); // ← USA NOTIFICATION
       return;
     }
 
@@ -39,14 +38,11 @@ class AgregarPeso {
         };
         final rowsAffected = await dbHelper.updateEjercicio(updateData);
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al guardar $exerciseName: $e')),
-        );
+        SuccessNotification.showError(context, 'Error al guardar $exerciseName'); // ← USA NOTIFICATION
+        return;
       }
     }
 
-    // ScaffoldMessenger.of(context).showSnackBar(
-    //   SnackBar(content: Text('Ejercicios guardados: ${completedExercises.join(", ")}')),
-    // );
+    SuccessNotification.show(context, 'Ejercicios guardados: ${completedExercises.join(", ")}'); // ← USA NOTIFICATION
   }
 }

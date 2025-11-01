@@ -54,66 +54,68 @@ class WorkoutAreaScreenState extends State<WorkoutAreaScreen> {
             SizedBox(height: 20),
 
             // ========== LISTA DE ÁREAS DE ENTRENAMIENTO ==========
-            Column(
-              children: workoutAreas.map((area) {
-                return Padding(
-                  padding: EdgeInsets.only(bottom: 15),
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        Routes.bodyPartExercises,
-                        arguments: area.idPartesC,
-                      );
-                    },
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.9, // 90% of screen width for padding
-                      height: 200,
-                      margin: EdgeInsets.symmetric(horizontal: 10), // Horizontal margin for edge spacing
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                          image: AssetImage(
-                            'assets/workout_area/${area.nombre.toLowerCase().replaceAll(' ', '_')}.jpg',
-                          ),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
+            Center( // ← AÑADE Center aquí
+              child: Column(
+                children: workoutAreas.map((area) {
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: 15),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          Routes.bodyPartExercises,
+                          arguments: area.idPartesC,
+                        );
+                      },
                       child: Container(
+                        width: MediaQuery.of(context).size.width * 0.9, // 90% of screen width for padding
+                        height: 200,
+                        margin: EdgeInsets.symmetric(horizontal: 10), // Horizontal margin for edge spacing
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Colors.black.withValues(alpha: 0.4),
-                              Colors.black.withValues(alpha: 0.6),
-                            ],
+                          image: DecorationImage(
+                            image: AssetImage(
+                              'assets/workout_area/${area.nombre.toLowerCase().replaceAll(' ', '_')}.jpg',
+                            ),
+                            fit: BoxFit.cover,
                           ),
                         ),
-                        child: Padding(
-                          padding: EdgeInsets.all(20),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                area.nombre.split(' ').join('\n'), // Divide "Tren Superior" en líneas
-                                style: TextStyle(
-                                  fontFamily: 'JetBrainsMono_Regular',
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                  letterSpacing: 1.0,
-                                  height: 1.2,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.black.withValues(alpha: 0.4),
+                                Colors.black.withValues(alpha: 0.6),
+                              ],
+                            ),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(20),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  area.nombre.split(' ').join('\n'), // Divide "Tren Superior" en líneas
+                                  style: TextStyle(
+                                    fontFamily: 'JetBrainsMono_Regular',
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    letterSpacing: 1.0,
+                                    height: 1.2,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              }).toList(),
+                  );
+                }).toList(),
+              ),
             ),
 
             SizedBox(height: 20),

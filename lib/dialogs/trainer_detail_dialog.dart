@@ -26,7 +26,7 @@ class TrainerDetailDialog extends StatelessWidget {
           children: [
             // ========== TÍTULO ==========
             Text(
-              'EL es ${trainer['name']}',
+              '${trainer['name']!.endsWith('a') ? 'Ella' : 'El'} es ${trainer['name']}',
               style: TextStyle(
                 fontFamily: 'JetBrainsMono_Regular',
                 fontSize: 16,
@@ -72,7 +72,7 @@ class TrainerDetailDialog extends StatelessWidget {
                             fontFamily: 'JetBrainsMono_Regular',
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue[900],
+                            color: const Color.fromARGB(255, 0, 0, 0),
                             letterSpacing: 0.3,
                           ),
                         ),
@@ -92,7 +92,7 @@ class TrainerDetailDialog extends StatelessWidget {
                           style: TextStyle(
                             fontFamily: 'JetBrainsMono_Regular',
                             fontSize: 9,
-                            color: Colors.blue,
+                            color: const Color.fromARGB(255, 77, 77, 77),
                             height: 1.4,
                           ),
                         ),

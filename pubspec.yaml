@@ -1,4 +1,4 @@
-name: kronos_2
+name: kronos
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -41,6 +41,7 @@ dependencies:
   cupertino_icons: ^1.0.8
 
 dev_dependencies:
+  flutter_launcher_icons: ^0.13.1
   flutter_test:
     sdk: flutter
 
@@ -53,6 +54,16 @@ dev_dependencies:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
+
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  # Opcional: diferentes íconos por plataforma
+  # image_path_android: "assets/icon/icon_android.png"
+  # image_path_ios: "assets/icon/icon_ios.png"
+
 
 # The following section is specific to Flutter packages.
 flutter:

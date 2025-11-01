@@ -106,9 +106,9 @@ class RecordPRScreenState extends State<RecordPRScreen> {
           endIndent: 20,
         ),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          padding: EdgeInsets.symmetric(horizontal: 20),
           child: Text(
-            categoryName,
+            " $categoryName",
             style: TextStyle(
               fontFamily: 'JetBrainsMono_Regular',
               fontSize: 13,
@@ -150,7 +150,7 @@ class RecordPRScreenState extends State<RecordPRScreen> {
   // ========== TARJETA DE EJERCICIO INDIVIDUAL ==========
   Widget _buildExerciseCard(BuildContext context, Map<String, dynamic> exercise) {
     return Container(
-      width: 160,
+      width: 240,
       decoration: BoxDecoration(
         border: Border.all(
           color: const Color.fromARGB(255, 0, 0, 0),
