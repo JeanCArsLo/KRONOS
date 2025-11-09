@@ -10,18 +10,21 @@ import 'screens/superior_exercises_screen.dart';
 import 'screens/exercise_detail_screen.dart';
 import 'screens/record_pr_screen.dart';
 import '../models/ejercicios.dart';
+import 'screens/ForgotPasswordScreen.dart';
 
 class Routes {
   static const String splash = '/';
   static const String welcome = '/welcome';
   static const String login = '/login';
   static const String register = '/register';
+  static const String forgotPassword = '/forgot-password'; 
   static const String home = '/home'; 
   static const String calendar = '/calendar'; 
   static const String workouts = '/workouts'; 
   static const String bodyPartExercises = '/superior-exercises';
   static const String exerciseDetail = '/exercise-detail';
   static const String recordPR = '/record-pr';
+  
 
   static Map<String, WidgetBuilder> getRoutes() {
     return {
@@ -29,6 +32,7 @@ class Routes {
       welcome: (context) => WelcomeScreen(),
       login: (context) => LoginScreen(),
       register: (context) => RegisterScreen(),
+      forgotPassword: (context) =>ForgotPasswordScreen(),
       home: (context) => HomeScreen(),
       calendar: (context) => CalendarScreen(),
       workouts: (context) => WorkoutAreaScreen(),

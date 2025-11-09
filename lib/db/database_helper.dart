@@ -20,24 +20,25 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'app_database.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2, // ¡SUBIMOS LA VERSIÓN!
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade, // Para migrar datos existentes
     );
   }
 
-  // 🔥 CREAR TABLAS
+  // 🔥 CREAR TABLAS (versión 2)
   Future _onCreate(Database db, int version) async {
-    // Tabla para usuarios
+    // === TABLA USUARIO ===
     await db.execute('''
-      CREATE TABLE users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        fullName TEXT NOT NULL UNIQUE,
-        passwordHash TEXT NOT NULL,
-        email TEXT UNIQUE,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      CREATE TABLE Usuario (
+        IdUsuario INTEGER PRIMARY KEY AUTOINCREMENT,
+        Nombres VARCHAR(100) NOT NULL,
+        Correo VARCHAR(100) NOT NULL UNIQUE,
+        Contraseña TEXT NOT NULL,
+        Fecha_nac DATE NOT NULL,
+        Genero CHAR(1) NOT NULL CHECK (Genero IN ('M', 'F'))
       )
     ''');
-
     // Nueva tabla: PartesCuerpo (contiene las partes generales del cuerpo como Tren Superior, Tren Inferior)
     await db.execute('''
       CREATE TABLE PartesCuerpo (
@@ -72,6 +73,34 @@ class DatabaseHelper {
 
     // Inserciones iniciales de datos
     await _insertInitialData(db);
+  }
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Renombrar tabla antigua
+      await db.execute('ALTER TABLE users RENAME TO users_old');
+
+      // Crear nueva tabla
+      await db.execute('''
+        CREATE TABLE Usuario (
+          IdUsuario INTEGER PRIMARY KEY AUTOINCREMENT,
+          Nombres VARCHAR(100) NOT NULL,
+          Correo VARCHAR(100) NOT NULL UNIQUE,
+          Contraseña TEXT NOT NULL,
+          Fecha_nac DATE NOT NULL,
+          Genero CHAR(1) NOT NULL CHECK (Genero IN ('M', 'F'))
+        )
+      ''');
+
+      // Migrar datos (con valores por defecto)
+      await db.execute('''
+        INSERT INTO Usuario (IdUsuario, Nombres, Correo, Contraseña, Fecha_nac, Genero)
+        SELECT id, fullName, COALESCE(email, 'sin_correo@example.com'), passwordHash, '2000-01-01', 'M'
+        FROM users_old
+      ''');
+
+      // Eliminar tabla vieja
+      await db.execute('DROP TABLE users_old');
+    }
   }
 
   // Método para insertar datos iniciales
@@ -450,23 +479,25 @@ class DatabaseHelper {
   }
 
   // 🔥 REGISTRO
-  Future<int> registerUser(String fullName, String password, [String? email]) async {
+  Future<int> insertUser(User user) async {
     final db = await database;
-    return await db.insert('users', {
-      'fullName': fullName,
-      'passwordHash': _hashPassword(password),
-      'email': email,
+    return await db.insert('Usuario', {
+      'Nombres': user.fullName,
+      'Correo': user.email,
+      'Contraseña': user.passwordHash, // ← SIN _hashPassword()
+      'Fecha_nac': user.birthDate.toIso8601String().split('T').first,
+      'Genero': user.gender,
     });
   }
 
-  // 🔥 LOGIN
-  Future<User?> validateLogin(String fullName, String password) async {
+  // LOGIN
+  Future<User?> validateLogin(String email, String password) async {
     final db = await database;
     String passwordHash = _hashPassword(password);
     final List<Map<String, dynamic>> maps = await db.query(
-      'users',
-      where: 'fullName = ? AND passwordHash = ?',
-      whereArgs: [fullName, passwordHash],
+      'Usuario',
+      where: 'Correo = ? AND Contraseña = ?',
+      whereArgs: [email, passwordHash],
     );
     if (maps.isNotEmpty) {
       return User.fromMap(maps.first);
@@ -474,12 +505,12 @@ class DatabaseHelper {
     return null;
   }
 
-  // 🔥 BUSCAR POR EMAIL
+  /// BUSCAR POR CORREO
   Future<User?> getUserByEmail(String email) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
-      'users',
-      where: 'email = ?',
+      'Usuario',
+      where: 'Correo = ?',
       whereArgs: [email],
     );
     if (maps.isNotEmpty) {
@@ -488,12 +519,12 @@ class DatabaseHelper {
     return null;
   }
 
-  // 🔥 BUSCAR POR FULLNAME
+  // 🔥 CORREGIDO: getUserByFullName apunta a tabla 'Usuario' y campo 'Nombres'
   Future<User?> getUserByFullName(String fullName) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
-      'users',
-      where: 'fullName = ?',
+      'Usuario',
+      where: 'Nombres = ?',
       whereArgs: [fullName],
     );
     if (maps.isNotEmpty) {
@@ -558,13 +589,22 @@ class DatabaseHelper {
     return null;
   }
   Future<int> updateEjercicio(Map<String, dynamic> ejercicio) async {
-  final db = await database;
-  return await db.update(
-    'Ejercicio',
-    ejercicio,
-    where: 'IdEjercicio = ?',
-    whereArgs: [ejercicio['IdEjercicio']],
-  );
-}
-
+    final db = await database;
+    return await db.update(
+      'Ejercicio',
+      ejercicio,
+      where: 'IdEjercicio = ?',
+      whereArgs: [ejercicio['IdEjercicio']],
+    );
+  }
+  // === ACTUALIZAR CONTRASEÑA ===
+  Future<void> updateUserPassword(String email, String newHash) async {
+    final db = await database;
+    await db.update(
+      'Usuario',
+      {'Contraseña': newHash},
+      where: 'Correo = ?',
+      whereArgs: [email],
+    );
+  }
 }

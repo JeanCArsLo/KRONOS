@@ -1,4 +1,4 @@
-name: kronos
+name: kronos_2
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -36,6 +36,8 @@ dependencies:
   path: ^1.9.0           # 🔥 Para rutas
   crypto: ^3.0.5         # 🔥 Para contraseñas
   diacritic: ^0.1.5
+  mailer: ^6.1.1
+  shared_preferences: ^2.3.2
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
