@@ -63,7 +63,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   bool _isPasswordValid() =>
-      _hasMinLength && _hasUppercase && _hasNumber && _hasSpecialChar && _notOnlyNumbers;
+      _hasMinLength &&
+      _hasUppercase &&
+      _hasNumber &&
+      _hasSpecialChar &&
+      _notOnlyNumbers;
 
   // === PASO 1: ENVIAR CÓDIGO ===
   Future<void> _sendCode() async {
@@ -81,14 +85,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         return;
       }
 
-      _generatedOtp = (100000 + DateTime.now().millisecondsSinceEpoch % 900000).toString();
+      _generatedOtp = (100000 + DateTime.now().millisecondsSinceEpoch % 900000)
+          .toString();
 
       final smtpServer = gmail(_gmailEmail, _gmailAppPassword);
       final message = Message()
         ..from = Address(_gmailEmail, 'Kronos')
         ..recipients.add(email)
         ..subject = 'Código para cambiar contraseña'
-        ..html = '''
+        ..html =
+            '''
           <h2>¡Hola!</h2>
           <p>Tu código para cambiar la contraseña es:</p>
           <h1 style="color: #FF8C42; font-size: 32px; letter-spacing: 8px;"><b>$_generatedOtp</b></h1>
@@ -162,144 +168,405 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
   }
 
   void _showSuccess(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.green));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.green));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back, color: Color(0xFF003D82)), onPressed: () => Navigator.pop(context)),
-        title: const Text('Cambiar Contraseña', style: TextStyle(fontFamily: 'JetBrainsMono_Regular', color: Color(0xFF003D82))),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
+      body: Stack(
+        children: [
+          // Fondo con imagen (igual que en LoginScreen)
+          Image.asset(
+            'assets/gym/gym6.jpg',
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+          // Overlay más oscuro (igual que en LoginScreen)
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(0.8),
+                  Colors.black.withOpacity(0.9),
+                ],
+              ),
+            ),
+          ),
 
-              // === PASO 1: INGRESAR CORREO ===
-              if (_currentStep == 1) ...[
-                const Text('Ingresa tu correo para recibir un código', textAlign: TextAlign.center, style: TextStyle(fontSize: 14)),
-                const SizedBox(height: 20),
-                _buildTextField(_emailController, 'tuemail@ejemplo.com', TextInputType.emailAddress),
-                const SizedBox(height: 30),
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _sendCode,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF8C42),
-                    minimumSize: const Size(double.infinity, 55),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          // Contenido del ForgotPasswordScreen (botón arriba, resto centrado)
+          SafeArea(
+            child: Column(
+              children: [
+                // Botón de regreso (arriba del todo)
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
+                    ),
                   ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('ENVIAR CÓDIGO', style: TextStyle(color: Colors.white, fontFamily: 'JetBrainsMono_Regular')),
                 ),
-              ]
 
-              // === PASO 2: INGRESAR CÓDIGO ===
-              else if (_currentStep == 2) ...[
-                Text('Código enviado a:', style: TextStyle(color: Colors.grey[700])),
-                Text(_emailController.text, style: const TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 20),
-                TextField(
-                  controller: _otpController,
-                  keyboardType: TextInputType.number,
-                  maxLength: 6,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 24, letterSpacing: 8, fontWeight: FontWeight.bold),
-                  decoration: InputDecoration(
-                    hintText: '------',
-                    counterText: '',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _verifyCode,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF8C42),
-                    minimumSize: const Size(double.infinity, 55),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                  ),
-                  child: const Text('VERIFICAR', style: TextStyle(color: Colors.white, fontFamily: 'JetBrainsMono_Regular')),
-                ),
-                TextButton(
-                  onPressed: _resendTimer > 0 ? null : _sendCode,
-                  child: Text(_resendTimer > 0 ? 'Reenviar en $_resendTimer s' : 'Reenviar', style: TextStyle(color: _resendTimer > 0 ? Colors.grey : const Color(0xFFFF8C42))),
-                ),
-              ]
+                // Cuerpo principal centrado
+                Expanded(
+                  child: Center(
+                    // Añadido Center aquí
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment
+                            .center, // Asegura centrado vertical
+                        children: [
+                          // Título centrado y más pequeño
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Text(
+                              'Cambiar Contraseña',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 30, // Tamaño reducido
+                                fontWeight: FontWeight.w400, // Peso reducido
+                                color: Colors.white,
+                                letterSpacing: 1.5, // Ajuste de espaciado
+                              ),
+                            ),
+                          ),
 
-              // === PASO 3: NUEVA CONTRASEÑA ===
-              else if (_currentStep == 3) ...[
-                _buildLabel('Nueva Contraseña'),
-                _buildPasswordField(_newPasswordController, _obscureNew, () => setState(() => _obscureNew = !_obscureNew)),
-                const SizedBox(height: 12),
-                _buildPasswordRequirements(),
-                const SizedBox(height: 20),
-                _buildLabel('Confirmar Contraseña'),
-                _buildPasswordField(_confirmPasswordController, _obscureConfirm, () => setState(() => _obscureConfirm = !_obscureConfirm)),
-                const SizedBox(height: 30),
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _changePassword,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF8C42),
-                    minimumSize: const Size(double.infinity, 55),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                          const SizedBox(height: 30),
+
+                          // === PASO 1: INGRESAR CORREO ===
+                          if (_currentStep == 1) ...[
+                            // Texto con color más claro
+                            Text(
+                              'Ingresa tu correo para recibir un código',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(
+                                  0.9,
+                                ), // Color más claro
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 35),
+
+                            // Campo de correo electrónico (estilo del LoginScreen)
+                            _buildInputField(
+                              controller: _emailController,
+                              label: 'Correo Electrónico',
+                              hint: 'ejemplo@correo.com',
+                              icon: Icons.email_outlined,
+                              keyboardType: TextInputType.emailAddress,
+                            ),
+
+                            const SizedBox(height: 50),
+
+                            // Botón de enviar código (estilo original de ForgotPasswordScreen)
+                            ElevatedButton(
+                              onPressed: _isLoading ? null : _sendCode,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFFF8C42),
+                                minimumSize: const Size(double.infinity, 55),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                              ),
+                              child: _isLoading
+                                  ? const CircularProgressIndicator(
+                                      color: Colors.white,
+                                    )
+                                  : const Text(
+                                      'ENVIAR CÓDIGO',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontFamily: 'JetBrainsMono_Regular',
+                                      ),
+                                    ),
+                            ),
+                          ]
+                          // === PASO 2: INGRESAR CÓDIGO ===
+                          else if (_currentStep == 2) ...[
+                            Text(
+                              'Código enviado a:',
+                              style: TextStyle(color: Colors.grey[700]),
+                            ),
+                            Text(
+                              _emailController.text,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+
+                            // Campo de código OTP (estilo del LoginScreen)
+                            _buildInputField(
+                              controller: _otpController,
+                              label: 'Código de Verificación',
+                              hint: '------',
+                              icon: Icons.lock_outline,
+                              keyboardType: TextInputType.number,
+                              maxLength: 6, // Limitar a 6 dígitos
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            // Botón de verificar (estilo original de ForgotPasswordScreen)
+                            ElevatedButton(
+                              onPressed: _verifyCode,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFFF8C42),
+                                minimumSize: const Size(double.infinity, 55),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                              ),
+                              child: const Text(
+                                'VERIFICAR',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: 'JetBrainsMono_Regular',
+                                ),
+                              ),
+                            ),
+
+                            // Botón de reenviar código (estilo original de ForgotPasswordScreen)
+                            TextButton(
+                              onPressed: _resendTimer > 0 ? null : _sendCode,
+                              child: Text(
+                                _resendTimer > 0
+                                    ? 'Reenviar en $_resendTimer s'
+                                    : 'Reenviar',
+                                style: TextStyle(
+                                  color: _resendTimer > 0
+                                      ? Colors.grey
+                                      : const Color(0xFFFF8C42),
+                                ),
+                              ),
+                            ),
+                          ]
+                          // === PASO 3: NUEVA CONTRASEÑA ===
+                          else if (_currentStep == 3) ...[
+                            // Campo de nueva contraseña (estilo del LoginScreen)
+                            _buildInputField(
+                              controller: _newPasswordController,
+                              label: 'Nueva Contraseña',
+                              hint: 'Contraseña segura',
+                              icon: Icons.lock_outline,
+                              obscureText: _obscureNew,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscureNew
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  color: Colors.white70,
+                                  size: 22,
+                                ),
+                                onPressed: () {
+                                  setState(() => _obscureNew = !_obscureNew);
+                                },
+                              ),
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            // Requisitos contraseña (estilo original de ForgotPasswordScreen)
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                border: Border.all(),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Requisitos:',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors
+                                          .white70, // Color claro para que se vea bien
+                                    ),
+                                  ),
+                                  _req('8+ caracteres', _hasMinLength),
+                                  _req('Mayúscula', _hasUppercase),
+                                  _req('Número', _hasNumber),
+                                  _req('Especial', _hasSpecialChar),
+                                  _req('No solo números', _notOnlyNumbers),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            // Campo de confirmar contraseña (estilo del LoginScreen)
+                            _buildInputField(
+                              controller: _confirmPasswordController,
+                              label: 'Confirmar Contraseña',
+                              hint: 'Confirmar contraseña',
+                              icon: Icons.lock_outline,
+                              obscureText: _obscureConfirm,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscureConfirm
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  color: Colors.white70,
+                                  size: 22,
+                                ),
+                                onPressed: () {
+                                  setState(
+                                    () => _obscureConfirm = !_obscureConfirm,
+                                  );
+                                },
+                              ),
+                            ),
+
+                            const SizedBox(height: 40),
+
+                            // Botón de cambiar contraseña (estilo original de ForgotPasswordScreen)
+                            ElevatedButton(
+                              onPressed: _isLoading ? null : _changePassword,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFFF8C42),
+                                minimumSize: const Size(double.infinity, 55),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                              ),
+                              child: _isLoading
+                                  ? const CircularProgressIndicator(
+                                      color: Colors.white,
+                                    )
+                                  : const Text(
+                                      'CAMBIAR CONTRASEÑA',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontFamily: 'JetBrainsMono_Regular',
+                                      ),
+                                    ),
+                            ),
+                          ],
+
+                          const SizedBox(height: 40),
+                        ],
+                      ),
+                    ),
                   ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('CAMBIAR CONTRASEÑA', style: TextStyle(color: Colors.white, fontFamily: 'JetBrainsMono_Regular')),
                 ),
               ],
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildLabel(String text) => Align(alignment: Alignment.centerLeft, child: Text(text, style: const TextStyle(fontSize: 14, fontFamily: 'JetBrainsMono_Regular')));
-
-  Widget _buildTextField(TextEditingController c, String hint, [TextInputType? kt]) => TextField(
-        controller: c,
-        keyboardType: kt,
-        decoration: InputDecoration(hintText: hint, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)),
-      );
-
-  Widget _buildPasswordField(TextEditingController c, bool obscure, VoidCallback toggle) => TextField(
-        controller: c,
-        obscureText: obscure,
-        decoration: InputDecoration(
-          hintText: 'Contraseña segura',
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          suffixIcon: IconButton(icon: Icon(obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined), onPressed: toggle),
+  // Widget para construir campos de texto con el mismo estilo que el LoginScreen
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    bool obscureText = false,
+    TextInputType keyboardType = TextInputType.text,
+    Widget? suffixIcon,
+    int? maxLength, // Agregar maxLength como parámetro opcional
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.5,
+          ),
         ),
-      );
-
-  Widget _buildPasswordRequirements() => Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(border: Border.all(), borderRadius: BorderRadius.circular(10)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Requisitos:'),
-            _req('8+ caracteres', _hasMinLength),
-            _req('Mayúscula', _hasUppercase),
-            _req('Número', _hasNumber),
-            _req('Especial', _hasSpecialChar),
-            _req('No solo números', _notOnlyNumbers),
-          ],
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.1),
+              width: 1,
+            ),
+          ),
+          child: TextField(
+            controller: controller,
+            obscureText: obscureText,
+            keyboardType: keyboardType,
+            maxLength: maxLength, // Aplicar maxLength si se proporciona
+            style: const TextStyle(color: Colors.white, fontSize: 16),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(
+                color: Colors.white.withValues(alpha: 0.3),
+                fontSize: 15,
+              ),
+              prefixIcon: Icon(icon, color: Colors.white60, size: 22),
+              suffixIcon: suffixIcon,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(28),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(28),
+                borderSide: const BorderSide(
+                  color: Color(0xFF1976D2),
+                  width: 2,
+                ),
+              ),
+              filled: true,
+              fillColor: Colors.transparent,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 16,
+              ),
+              counterText: maxLength != null
+                  ? '${controller.text.length}/$maxLength'
+                  : '', // Mostrar contador si maxLength está definido
+            ),
+          ),
         ),
-      );
+      ],
+    );
+  }
 
-  Widget _req(String t, bool v) => Row(children: [Icon(v ? Icons.check_circle : Icons.radio_button_unchecked, size: 16, color: v ? Colors.green : Colors.grey), const SizedBox(width: 6), Text(t, style: TextStyle(fontSize: 12))]);
+  // Widget para mostrar los requisitos de la contraseña (estilo original de ForgotPasswordScreen)
+  Widget _req(String t, bool v) => Row(
+    children: [
+      Icon(
+        v ? Icons.check_circle : Icons.radio_button_unchecked,
+        size: 16,
+        color: v ? Colors.green : Colors.grey,
+      ),
+      const SizedBox(width: 6),
+      Text(
+        t,
+        style: TextStyle(
+          fontSize: 12,
+          color: v ? Colors.green : Colors.white70, // <-- Añadido color
+        ),
+      ),
+    ],
+  );
 }

@@ -36,7 +36,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // ========== CARRUSEL DE IMÁGENES ==========
+          // ========== CARRUSEL DE IMÁGENES (CON FILTRO DE OPACIDAD) ==========
           SizedBox(
             height: MediaQuery.of(context).size.height,
             child: CarouselSlider(
@@ -62,34 +62,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       fit: BoxFit.cover,
                     ),
                   ),
+                  child: Container(
+                    // Overlay oscuro para que el texto se vea bien
+                    decoration: BoxDecoration(
+                      color: Color(0x99000000), // 60% opacity black
+                    ),
+                  ),
                 );
               }).toList(),
             ),
           ),
 
-          // ========== DIFUMINADO EN LA PARTE INFERIOR ==========
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: MediaQuery.of(context).size.height * 0.4,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    const Color.fromARGB(0, 235, 235, 235),
-                    const Color.fromARGB(255, 255, 255, 255).withValues(alpha: 0xB3), // 70% de opacidad aprox.
-                    const Color.fromARGB(255, 255, 255, 255).withValues(alpha: 0xE6), // 90% de opacidad aprox.
-                  ],
-                  stops: [0.0, 0.5, 1.0],
-                ),
-              ),
-            ),
-          ),
-
-          // ========== CONTENIDO: TEXTO, PUNTOS Y BOTONES ==========
+          // ========== CONTENIDO: TEXTO, PUNTOS Y BOTONES (CON DISEÑO OSCURO) ==========
           Padding(
             padding: EdgeInsets.all(20.0),
             child: Column(
@@ -101,9 +85,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'JetBrainsMono_Regular',
-                    color: const Color.fromARGB(255, 0, 0, 0),
+                    color: Colors.white, // Texto blanco para contraste
                     fontSize: 15,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                     height: 1.4,
                   ),
                 ),
@@ -120,33 +104,55 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: _currentIndex == entry.key
-                            ? const Color.fromARGB(255, 0, 0, 0)
-                            : const Color.fromARGB(255, 102, 100, 100).withValues(alpha: 0x66),
+                            ? Color(
+                                0xFFFF6B35,
+                              ) // Naranja vibrante para el activo
+                            : Color(
+                                0x80FFFFFF,
+                              ), // 50% opacity white para inactivos
                       ),
                     );
                   }).toList(),
                 ),
                 SizedBox(height: 30),
 
-                // ========== BOTÓN "CREAR CUENTA" ==========
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, Routes.register);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF003D82),
-                    minimumSize: Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
+                // ========== BOTÓN "CREAR CUENTA" (CON ESTILO CONSISTENTE) ==========
+                Container(
+                  width: double.infinity,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF1e3a8a), Color(0xFF2563eb)],
                     ),
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0x4D1e3a8a), // 30% opacity
+                        blurRadius: 15,
+                        offset: Offset(0, 8),
+                      ),
+                    ],
                   ),
-                  child: Text(
-                    'CREAR CUENTA',
-                    style: TextStyle(
-                      fontFamily: 'JetBrainsMono_Regular',
-                      fontSize: 18,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, Routes.register);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(28),
+                      ),
+                    ),
+                    child: Text(
+                      'CREAR CUENTA',
+                      style: TextStyle(
+                        fontFamily: 'JetBrainsMono_Regular',
+                        fontSize: 18,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   ),
                 ),
@@ -160,7 +166,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       'Ya tengo cuenta. ',
                       style: TextStyle(
                         fontFamily: 'JetBrainsMono_Regular',
-                        color: const Color.fromARGB(255, 0, 0, 0),
+                        color: Color(
+                          0xB3FFFFFF,
+                        ), // 70% opacity white (Colors.white70)
                         fontSize: 14,
                       ),
                     ),
@@ -172,7 +180,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         'Iniciar Sesión.',
                         style: TextStyle(
                           fontFamily: 'JetBrainsMono_Regular',
-                          color: Colors.orange,
+                          color: Color(
+                            0xFFFF6B35,
+                          ), // Naranja vibrante para el enlace
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),

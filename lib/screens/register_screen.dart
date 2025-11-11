@@ -45,6 +45,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final String _gmailEmail = 'jeanflores831@gmail.com';
   final String _gmailAppPassword = 'jwbh fotp ejjv lazk';
 
+  // === IMAGEN DE FONDO ===
+  final String _backgroundImage = 'assets/gym/gym7.jpg';
+
   @override
   void initState() {
     super.initState();
@@ -74,7 +77,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   bool _isPasswordValid() =>
-      _hasMinLength && _hasUppercase && _hasNumber && _hasSpecialChar && _notOnlyNumbers;
+      _hasMinLength &&
+      _hasUppercase &&
+      _hasNumber &&
+      _hasSpecialChar &&
+      _notOnlyNumbers;
 
   // === ENVIAR OTP POR GMAIL ===
   Future<void> _sendOtp() async {
@@ -86,14 +93,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     setState(() => _isLoading = true);
     try {
-      _generatedOtp = (100000 + DateTime.now().millisecondsSinceEpoch % 900000).toString();
+      _generatedOtp = (100000 + DateTime.now().millisecondsSinceEpoch % 900000)
+          .toString();
 
       final smtpServer = gmail(_gmailEmail, _gmailAppPassword);
       final message = Message()
         ..from = Address(_gmailEmail, 'Kronos App')
         ..recipients.add(email)
         ..subject = 'Tu código de verificación - Kronos'
-        ..html = '''
+        ..html =
+            '''
           <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
             <h2 style="color: #003D82;">¡Hola!</h2>
             <p>Tu código de verificación es:</p>
@@ -157,12 +166,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFFFF8C42),
+              primary: Color(0xFF1976D2),
               onPrimary: Colors.white,
               surface: Colors.white,
             ),
             textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(foregroundColor: const Color(0xFFFF8C42)),
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF1976D2),
+              ),
             ),
           ),
           child: child!,
@@ -182,8 +193,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final confirm = _confirmPasswordController.text;
 
     if (fullName.isEmpty) return _showError('Ingresa tu nombre completo');
-    if (_selectedDate == null) return _showError('Selecciona tu fecha de nacimiento');
-    if (!_isPasswordValid()) return _showError('La contraseña no cumple los requisitos');
+    if (_selectedDate == null)
+      return _showError('Selecciona tu fecha de nacimiento');
+    if (!_isPasswordValid())
+      return _showError('La contraseña no cumple los requisitos');
     if (password != confirm) return _showError('Las contraseñas no coinciden');
 
     setState(() => _isLoading = true);
@@ -198,7 +211,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('¡Cuenta creada exitosamente!'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('¡Cuenta creada exitosamente!'),
+            backgroundColor: Colors.green,
+          ),
         );
         Navigator.pushReplacementNamed(context, Routes.login);
       }
@@ -211,341 +227,595 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   // === MENSAJES ===
   void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: Colors.red),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
   }
 
   void _showSuccess(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: Colors.green),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.green));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Column(
-            children: [
-              const SizedBox(height: 40),
-              const Text(
-                'Sign Up',
-                style: TextStyle(
-                  fontFamily: 'JetBrainsMono_Regular',
-                  fontSize: 32,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 1.0,
-                ),
+      body: Stack(
+        children: [
+          // Fondo con imagen
+          Image.asset(
+            _backgroundImage,
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+          // Overlay más oscuro
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xCC000000), // 80% opacity
+                  Color(0xE6000000), // 90% opacity
+                ],
               ),
-              const SizedBox(height: 30),
+            ),
+          ),
 
-              // === PASO 1: CORREO ===
-              if (_currentStep == 1) ...[
-                _buildLabel('Correo Electrónico'),
-                _buildTextField(_emailController, 'ejemplo@gmail.com', TextInputType.emailAddress),
-                const SizedBox(height: 30),
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _sendOtp,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF8C42),
-                    minimumSize: const Size(double.infinity, 55),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                    elevation: 0,
-                  ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          'ENVIAR CÓDIGO',
-                          style: TextStyle(
-                            fontFamily: 'JetBrainsMono_Regular',
-                            fontSize: 16,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 1.0,
+          // Contenido
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 40),
+
+                    // Título
+                    const Text(
+                      'Sign Up',
+                      style: TextStyle(
+                        fontSize: 48,
+                        fontWeight: FontWeight.w300,
+                        color: Colors.white,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+
+                    // === PASO 1: CORREO ===
+                    if (_currentStep == 1) ...[
+                      _buildLabel('Correo Electrónico'),
+                      const SizedBox(height: 12),
+                      _buildTextField(
+                        _emailController,
+                        'ejemplo@gmail.com',
+                        TextInputType.emailAddress,
+                      ),
+                      const SizedBox(height: 30),
+                      _buildButton(
+                        text: 'ENVIAR CÓDIGO',
+                        onPressed: _isLoading ? null : _sendOtp,
+                        isLoading: _isLoading,
+                      ),
+                    ]
+                    // === PASO 2: CÓDIGO OTP ===
+                    else if (_currentStep == 2) ...[
+                      Text(
+                        'Código enviado a:',
+                        style: TextStyle(
+                          color: Color(0xB3FFFFFF), // 70% opacity
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _emailController.text,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // CAMPO DE CÓDIGO (6 DÍGITOS)
+                      TextField(
+                        controller: _otpController,
+                        keyboardType: TextInputType.number,
+                        maxLength: 6,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          letterSpacing: 8,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: '------',
+                          hintStyle: TextStyle(
+                            color: Color(0x4DFFFFFF), // 30% opacity
+                          ),
+                          counterText: '',
+                          filled: true,
+                          fillColor: Color(0x0DFFFFFF), // 5% opacity
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: Color(0x1AFFFFFF), // 10% opacity
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF1976D2),
+                              width: 2,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: Color(0x1AFFFFFF), // 10% opacity
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16,
                           ),
                         ),
-                ),
-              ]
+                      ),
 
-              // === PASO 2: CÓDIGO OTP ===
-              else if (_currentStep == 2) ...[
-                Text(
-                  'Código enviado a:',
-                  style: TextStyle(color: Colors.grey[700], fontSize: 14),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  _emailController.text,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                const SizedBox(height: 20),
+                      const SizedBox(height: 20),
+                      _buildButton(
+                        text: 'VERIFICAR CÓDIGO',
+                        onPressed: _verifyOtp,
+                      ),
+                      TextButton(
+                        onPressed: _resendTimer > 0 ? null : _sendOtp,
+                        child: Text(
+                          _resendTimer > 0
+                              ? 'Reenviar en $_resendTimer s'
+                              : 'Reenviar código',
+                          style: TextStyle(
+                            color: _resendTimer > 0
+                                ? Color(0x80FFFFFF) // 50% opacity
+                                : const Color(0xFF1976D2),
+                          ),
+                        ),
+                      ),
+                    ]
+                    // === PASO 3: FORMULARIO COMPLETO ===
+                    else if (_currentStep == 3) ...[
+                      _buildLabel('Nombres y Apellidos'),
+                      const SizedBox(height: 12),
+                      _buildTextField(_fullNameController, 'Juan Pérez'),
+                      const SizedBox(height: 20),
 
-                // CAMPO DE CÓDIGO (6 DÍGITOS)
-                TextField(
-                  controller: _otpController,
-                  keyboardType: TextInputType.number,
-                  maxLength: 6,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    letterSpacing: 8,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'JetBrainsMono_Regular',
-                  ),
-                  decoration: InputDecoration(
-                    hintText: '------',
-                    counterText: '',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFFF8C42), width: 2),
-                    ),
-                  ),
-                ),
+                      // === FECHA DE NACIMIENTO ===
+                      _buildLabel('Fecha de Nacimiento'),
+                      const SizedBox(height: 12),
+                      GestureDetector(
+                        onTap: () => _selectDate(context),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Color(0x0DFFFFFF), // 5% opacity
+                            borderRadius: BorderRadius.circular(28),
+                            border: Border.all(
+                              color: Color(0x1AFFFFFF), // 10% opacity
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _selectedDate == null
+                                    ? 'Selecciona una fecha'
+                                    : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: _selectedDate == null
+                                      ? Color(0x4DFFFFFF) // 30% opacity
+                                      : Colors.white,
+                                ),
+                              ),
+                              Icon(
+                                Icons.calendar_today,
+                                color: Color(0x99FFFFFF), // 60% opacity
+                                size: 20,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
 
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _verifyOtp,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF8C42),
-                    minimumSize: const Size(double.infinity, 55),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'VERIFICAR CÓDIGO',
-                    style: TextStyle(
-                      fontFamily: 'JetBrainsMono_Regular',
-                      fontSize: 16,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1.0,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: _resendTimer > 0 ? null : _sendOtp,
-                  child: Text(
-                    _resendTimer > 0 ? 'Reenviar en $_resendTimer s' : 'Reenviar código',
-                    style: TextStyle(
-                      color: _resendTimer > 0 ? Colors.grey : const Color(0xFFFF8C42),
-                      fontFamily: 'JetBrainsMono_Regular',
-                    ),
-                  ),
-                ),
-              ]
+                      // === GÉNERO ===
+                      _buildLabel('Género'),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () =>
+                                  setState(() => _selectedGender = 'M'),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _selectedGender == 'M'
+                                      ? Color(0x4D1976D2) // 30% opacity
+                                      : Color(0x0DFFFFFF), // 5% opacity
+                                  borderRadius: BorderRadius.circular(28),
+                                  border: Border.all(
+                                    color: _selectedGender == 'M'
+                                        ? const Color(0xFF1976D2)
+                                        : Color(0x1AFFFFFF), // 10% opacity
+                                    width: _selectedGender == 'M' ? 2 : 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      _selectedGender == 'M'
+                                          ? Icons.radio_button_checked
+                                          : Icons.radio_button_unchecked,
+                                      color: _selectedGender == 'M'
+                                          ? const Color(0xFF1976D2)
+                                          : Color(0x80FFFFFF), // 50% opacity
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Hombre',
+                                      style: TextStyle(
+                                        color: _selectedGender == 'M'
+                                            ? Colors.white
+                                            : Color(0xB3FFFFFF), // 70% opacity
+                                        fontWeight: _selectedGender == 'M'
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () =>
+                                  setState(() => _selectedGender = 'F'),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _selectedGender == 'F'
+                                      ? Color(0x4D1976D2) // 30% opacity
+                                      : Color(0x0DFFFFFF), // 5% opacity
+                                  borderRadius: BorderRadius.circular(28),
+                                  border: Border.all(
+                                    color: _selectedGender == 'F'
+                                        ? const Color(0xFF1976D2)
+                                        : Color(0x1AFFFFFF), // 10% opacity
+                                    width: _selectedGender == 'F' ? 2 : 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      _selectedGender == 'F'
+                                          ? Icons.radio_button_checked
+                                          : Icons.radio_button_unchecked,
+                                      color: _selectedGender == 'F'
+                                          ? const Color(0xFF1976D2)
+                                          : Color(0x80FFFFFF), // 50% opacity
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Mujer',
+                                      style: TextStyle(
+                                        color: _selectedGender == 'F'
+                                            ? Colors.white
+                                            : Color(0xB3FFFFFF), // 70% opacity
+                                        fontWeight: _selectedGender == 'F'
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
 
-              // === PASO 3: FORMULARIO COMPLETO ===
-              else if (_currentStep == 3) ...[
-                _buildLabel('Nombres y Apellidos'),
-                _buildTextField(_fullNameController, 'Juan Pérez'),
-                const SizedBox(height: 20),
+                      // === CONTRASEÑA ===
+                      _buildLabel('Contraseña'),
+                      const SizedBox(height: 12),
+                      _buildPasswordField(
+                        _passwordController,
+                        _obscurePassword,
+                        () => setState(
+                          () => _obscurePassword = !_obscurePassword,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildPasswordRequirements(),
+                      const SizedBox(height: 20),
 
-                // === FECHA DE NACIMIENTO ===
-                _buildLabel('Fecha de Nacimiento'),
-                GestureDetector(
-                  onTap: () => _selectDate(context),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFF003D82)),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      // === CONFIRMAR CONTRASEÑA ===
+                      _buildLabel('Confirmar Contraseña'),
+                      const SizedBox(height: 12),
+                      _buildPasswordField(
+                        _confirmPasswordController,
+                        _obscureConfirmPassword,
+                        () => setState(
+                          () => _obscureConfirmPassword =
+                              !_obscureConfirmPassword,
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+
+                      // === BOTÓN REGISTRO ===
+                      _buildButton(
+                        text: 'CREAR CUENTA',
+                        onPressed: _isLoading ? null : _register,
+                        isLoading: _isLoading,
+                      ),
+                    ],
+
+                    const SizedBox(height: 20),
+
+                    // ¿Ya tienes cuenta?
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          _selectedDate == null
-                              ? 'Selecciona una fecha'
-                              : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
+                          '¿Ya tienes una cuenta? ',
                           style: TextStyle(
+                            color: Color(0xB3FFFFFF), // 70% opacity
                             fontSize: 14,
-                            color: _selectedDate == null ? Colors.grey[600] : Colors.black,
-                            fontFamily: 'JetBrainsMono_Regular',
                           ),
                         ),
-                        const Icon(Icons.calendar_today, color: Color(0xFFFF8C42)),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pushReplacementNamed(
+                              context,
+                              Routes.login,
+                            );
+                          },
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text(
+                            'Inicia Sesión',
+                            style: TextStyle(
+                              color: Color(0xFF1976D2),
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // === GÉNERO ===
-                _buildLabel('Género'),
-                Row(
-                  children: [
-                    Expanded(
-                      child: RadioListTile<String>(
-                        title: const Text('Hombre', style: TextStyle(fontFamily: 'JetBrainsMono_Regular')),
-                        value: 'M',
-                        groupValue: _selectedGender,
-                        onChanged: (value) => setState(() => _selectedGender = value!),
-                        activeColor: const Color(0xFFFF8C42),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                    Expanded(
-                      child: RadioListTile<String>(
-                        title: const Text('Mujer', style: TextStyle(fontFamily: 'JetBrainsMono_Regular')),
-                        value: 'F',
-                        groupValue: _selectedGender,
-                        onChanged: (value) => setState(() => _selectedGender = value!),
-                        activeColor: const Color(0xFFFF8C42),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
+                    const SizedBox(height: 40),
                   ],
                 ),
-                const SizedBox(height: 20),
-
-                // === CONTRASEÑA ===
-                _buildLabel('Contraseña'),
-                _buildPasswordField(_passwordController, _obscurePassword, () {
-                  setState(() => _obscurePassword = !_obscurePassword);
-                }),
-                const SizedBox(height: 12),
-                _buildPasswordRequirements(),
-                const SizedBox(height: 20),
-
-                // === CONFIRMAR CONTRASEÑA ===
-                _buildLabel('Confirmar Contraseña'),
-                _buildPasswordField(_confirmPasswordController, _obscureConfirmPassword, () {
-                  setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
-                }),
-                const SizedBox(height: 30),
-
-                // === BOTÓN REGISTRO ===
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _register,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF8C42),
-                    minimumSize: const Size(double.infinity, 55),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                    elevation: 0,
-                  ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          'CREAR CUENTA',
-                          style: TextStyle(
-                            fontFamily: 'JetBrainsMono_Regular',
-                            fontSize: 16,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
-                ),
-              ],
-              const SizedBox(height: 20),
-            ],
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
   // === WIDGETS AUXILIARES ===
   Widget _buildLabel(String text) => Align(
-        alignment: Alignment.centerLeft,
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontFamily: 'JetBrainsMono_Regular',
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-      );
+    alignment: Alignment.centerLeft,
+    child: Text(
+      text,
+      style: const TextStyle(
+        color: Colors.white70,
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.5,
+      ),
+    ),
+  );
 
-  Widget _buildTextField(TextEditingController c, String hint, [TextInputType? kt]) => TextField(
+  Widget _buildTextField(
+    TextEditingController c,
+    String hint, [
+    TextInputType? kt,
+  ]) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Color(0x0DFFFFFF), // 5% opacity
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: Color(0x1AFFFFFF), width: 1), // 10% opacity
+      ),
+      child: TextField(
         controller: c,
         keyboardType: kt,
+        style: const TextStyle(color: Colors.white, fontSize: 16),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: TextStyle(fontFamily: 'JetBrainsMono_Regular', color: Colors.grey[400], fontSize: 14),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Color(0xFF003D82), width: 1),
+          hintStyle: TextStyle(
+            color: Color(0x4DFFFFFF), // 30% opacity
+            fontSize: 15,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(28),
+            borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Color(0xFF003D82), width: 1.5),
+            borderRadius: BorderRadius.circular(28),
+            borderSide: const BorderSide(color: Color(0xFF1976D2), width: 2),
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          filled: true,
+          fillColor: Colors.transparent,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 16,
+          ),
         ),
-      );
+      ),
+    );
+  }
 
-  Widget _buildPasswordField(TextEditingController c, bool obscure, VoidCallback toggle) => TextField(
+  Widget _buildPasswordField(
+    TextEditingController c,
+    bool obscure,
+    VoidCallback toggle,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Color(0x0DFFFFFF), // 5% opacity
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: Color(0x1AFFFFFF), width: 1), // 10% opacity
+      ),
+      child: TextField(
         controller: c,
         obscureText: obscure,
+        style: const TextStyle(color: Colors.white, fontSize: 16),
         decoration: InputDecoration(
           hintText: 'Contraseña segura',
-          hintStyle: TextStyle(fontFamily: 'JetBrainsMono_Regular', color: Colors.grey[400], fontSize: 14),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Color(0xFF003D82), width: 1),
+          hintStyle: TextStyle(
+            color: Color(0x4DFFFFFF), // 30% opacity
+            fontSize: 15,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(28),
+            borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Color(0xFF003D82), width: 1.5),
+            borderRadius: BorderRadius.circular(28),
+            borderSide: const BorderSide(color: Color(0xFF1976D2), width: 2),
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          filled: true,
+          fillColor: Colors.transparent,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 16,
+          ),
           suffixIcon: IconButton(
-            icon: Icon(obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: Colors.grey[600]),
+            icon: Icon(
+              obscure
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              color: Colors.white70,
+              size: 22,
+            ),
             onPressed: toggle,
           ),
         ),
-      );
+      ),
+    );
+  }
+
+  Widget _buildButton({
+    required String text,
+    required VoidCallback? onPressed,
+    bool isLoading = false,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF1976D2),
+          disabledBackgroundColor: Colors.grey[800],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+          ),
+          elevation: 0,
+        ),
+        child: isLoading
+            ? const SizedBox(
+                height: 24,
+                width: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2.5,
+                ),
+              )
+            : Text(
+                text,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                  letterSpacing: 1.0,
+                ),
+              ),
+      ),
+    );
+  }
 
   Widget _buildPasswordRequirements() => Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey[400]!),
-          borderRadius: BorderRadius.circular(10),
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: Color(0x0DFFFFFF), // 5% opacity
+      border: Border.all(color: Color(0x1AFFFFFF)), // 10% opacity
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Tu contraseña debe contener:',
+          style: TextStyle(
+            fontSize: 12,
+            color: Color(0xB3FFFFFF),
+          ), // 70% opacity
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Tu contraseña debe contener:',
-              style: TextStyle(fontFamily: 'JetBrainsMono_Regular', fontSize: 12, color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 6),
-            _reqItem('Mínimo 8 caracteres', _hasMinLength),
-            _reqItem('Al menos una mayúscula', _hasUppercase),
-            _reqItem('Al menos un número', _hasNumber),
-            _reqItem('Al menos un carácter especial', _hasSpecialChar),
-            _reqItem('No puede ser solo números', _notOnlyNumbers),
-          ],
-        ),
-      );
+        const SizedBox(height: 6),
+        _reqItem('Mínimo 8 caracteres', _hasMinLength),
+        _reqItem('Al menos una mayúscula', _hasUppercase),
+        _reqItem('Al menos un número', _hasNumber),
+        _reqItem('Al menos un carácter especial', _hasSpecialChar),
+        _reqItem('No puede ser solo números', _notOnlyNumbers),
+      ],
+    ),
+  );
 
   Widget _reqItem(String text, bool valid) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2),
-        child: Row(
-          children: [
-            Icon(
-              valid ? Icons.check_circle : Icons.radio_button_unchecked,
-              size: 16,
-              color: valid ? Colors.green : Colors.grey[600],
-            ),
-            const SizedBox(width: 6),
-            Text(
-              text,
-              style: TextStyle(
-                fontSize: 12,
-                color: valid ? Colors.green[700] : Colors.grey[600],
-                fontWeight: valid ? FontWeight.w500 : FontWeight.w400,
-              ),
-            ),
-          ],
+    padding: const EdgeInsets.symmetric(vertical: 2),
+    child: Row(
+      children: [
+        Icon(
+          valid ? Icons.check_circle : Icons.radio_button_unchecked,
+          size: 16,
+          color: valid ? Colors.green : Color(0x80FFFFFF), // 50% opacity
         ),
-      );
+        const SizedBox(width: 6),
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: 12,
+            color: valid ? Colors.green[300] : Color(0xB3FFFFFF), // 70% opacity
+            fontWeight: valid ? FontWeight.w500 : FontWeight.w400,
+          ),
+        ),
+      ],
+    ),
+  );
 }

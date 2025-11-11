@@ -21,6 +21,9 @@ class _LoginScreenState extends State<LoginScreen> {
   int _attempts = 0;
   bool _isLoading = false;
 
+  // CONFIGURA AQUÍ LA RUTA DE TU IMAGEN DE FONDO
+  final String _backgroundImage = 'assets/gym/gym6.jpg';
+
   @override
   void initState() {
     super.initState();
@@ -34,7 +37,6 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  // === VERIFICAR BLOQUEO AL ABRIR ===
   Future<void> _checkBlockOnStart() async {
     setState(() => _isLoading = true);
     try {
@@ -55,7 +57,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // === TEMPORIZADOR EN VIVO ===
   void _startTimer() {
     Future.doWhile(() async {
       await Future.delayed(const Duration(seconds: 1));
@@ -77,7 +78,6 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  // === LOGIN ===
   Future<void> _login() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
@@ -101,7 +101,11 @@ class _LoginScreenState extends State<LoginScreen> {
         await _blockService.resetFailedAttempts();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('¡Bienvenido ${user.fullName}!'), backgroundColor: Colors.green),
+            const SnackBar(
+              content: Text('¡Bienvenido!'),
+              backgroundColor: Color(0xFF4CAF50),
+              behavior: SnackBarBehavior.floating,
+            ),
           );
           Navigator.pushReplacementNamed(context, Routes.home);
         }
@@ -133,7 +137,11 @@ class _LoginScreenState extends State<LoginScreen> {
   void _showError(String msg) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text(msg),
+          backgroundColor: const Color(0xFFD32F2F),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
     }
   }
@@ -141,80 +149,358 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Column(
-            children: [
-              const SizedBox(height: 60),
-              const Text('Login', style: TextStyle(fontFamily: 'JetBrainsMono_Regular', fontSize: 32)),
-              const SizedBox(height: 60),
-
-              _buildLabel('Correo Electrónico'),
-              _buildTextField(_emailController, 'ejemplo@gmail.com', TextInputType.emailAddress),
-              const SizedBox(height: 24),
-
-              _buildLabel('Contraseña'),
-              _buildPasswordField(_passwordController, _obscurePassword, () {
-                setState(() => _obscurePassword = !_obscurePassword);
-              }),
-              const SizedBox(height: 20),
-
-              if (_attempts > 0 && _blockedUntil == null)
-                Text('Intentos fallidos: $_attempts/3', style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold)),
-
-              if (_blockedUntil != null)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  decoration: BoxDecoration(color: Colors.red[50], border: Border.all(color: Colors.red), borderRadius: BorderRadius.circular(10)),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.lock, color: Colors.red),
-                      const SizedBox(width: 8),
-                      Text('Bloqueado: $_blockedUntil', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-              const SizedBox(height: 20),
-
-              ElevatedButton(
-                onPressed: _isLoading || _blockedUntil != null ? null : _login,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF003D82),
-                  minimumSize: const Size(double.infinity, 55),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                ),
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('INICIAR SESIÓN', style: TextStyle(color: Colors.white, fontFamily: 'JetBrainsMono_Regular')),
-              ),
-              const SizedBox(height: 24),
-
-              TextButton(onPressed: () => Navigator.pushNamed(context, Routes.register), child: const Text('¿No tienes cuenta? Regístrate', style: TextStyle(color: Color(0xFF003D82)))),
-              TextButton(onPressed: () => Navigator.pushNamed(context, Routes.forgotPassword), child: const Text('¿Olvidaste tu contraseña?', style: TextStyle(color: Colors.grey))),
-            ],
+      body: Stack(
+        children: [
+          // Fondo con imagen
+          Image.asset(
+            _backgroundImage,
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
           ),
-        ),
+          // Overlay más oscuro
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(0.8),
+                  Colors.black.withOpacity(0.9),
+                ],
+              ),
+            ),
+          ),
+
+          // Contenido del login
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 40),
+
+                    // Título "Login"
+                    const Text(
+                      'Login',
+                      style: TextStyle(
+                        fontSize: 48,
+                        fontWeight: FontWeight.w300,
+                        color: Colors.white,
+                        letterSpacing: 2,
+                      ),
+                    ),
+
+                    const SizedBox(height: 60),
+
+                    // Alerta de bloqueo
+                    if (_blockedUntil != null)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        margin: const EdgeInsets.only(bottom: 24),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD32F2F).withValues(alpha: 0.2),
+                          border: Border.all(
+                            color: const Color(0xFFD32F2F),
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.lock_clock,
+                              color: Color(0xFFEF5350),
+                              size: 24,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Cuenta bloqueada',
+                                    style: TextStyle(
+                                      color: Color(0xFFEF5350),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Tiempo restante: $_blockedUntil',
+                                    style: const TextStyle(
+                                      color: Color(0xFFE57373),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    // Alerta de intentos
+                    if (_attempts > 0 && _blockedUntil == null)
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(bottom: 24),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFF9800).withValues(alpha: 0.2),
+                          border: Border.all(
+                            color: const Color(0xFFFF9800),
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.warning_amber_rounded,
+                              color: Color(0xFFFFB74D),
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'Intentos fallidos: $_attempts/3',
+                                style: const TextStyle(
+                                  color: Color(0xFFFFB74D),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    // Campo de correo electrónico
+                    _buildInputField(
+                      controller: _emailController,
+                      label: 'Correo Electronico',
+                      hint: 'ejemplo@correo.com',
+                      icon: Icons.email_outlined,
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Campo de contraseña
+                    _buildInputField(
+                      controller: _passwordController,
+                      label: 'Contraseña',
+                      hint: 'Contraseña segura',
+                      icon: Icons.lock_outline,
+                      obscureText: _obscurePassword,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                          color: Colors.white70,
+                          size: 22,
+                        ),
+                        onPressed: () {
+                          setState(() => _obscurePassword = !_obscurePassword);
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(height: 40),
+
+                    // Botón de login
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: (_isLoading || _blockedUntil != null)
+                            ? null
+                            : _login,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1976D2),
+                          disabledBackgroundColor: Colors.grey[800],
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(28),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : const Text(
+                                'Login',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // ¿Olvidaste tu contraseña?
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, Routes.forgotPassword);
+                      },
+                      child: const Text(
+                        '¿Has olvidado tu contraseña?',
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Divisor OR
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Divider(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            thickness: 1,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            'OR',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.5),
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Divider(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            thickness: 1,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // ¿No tienes cuenta? Regístrate
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "¿No tienes cuenta? ",
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 15,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, Routes.register);
+                          },
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text(
+                            'Regístrate',
+                            style: TextStyle(
+                              color: Color(0xFF1976D2),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 40),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildLabel(String t) => Align(alignment: Alignment.centerLeft, child: Text(t, style: const TextStyle(fontFamily: 'JetBrainsMono_Regular', fontSize: 14)));
-  Widget _buildTextField(TextEditingController c, String h, [TextInputType? k]) => TextField(
-        controller: c,
-        keyboardType: k,
-        decoration: InputDecoration(hintText: h, border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)), contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16)),
-      );
-  Widget _buildPasswordField(TextEditingController c, bool o, VoidCallback t) => TextField(
-        controller: c,
-        obscureText: o,
-        decoration: InputDecoration(
-          hintText: 'Contraseña segura',
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-          suffixIcon: IconButton(icon: Icon(o ? Icons.visibility_outlined : Icons.visibility_off_outlined), onPressed: t),
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    bool obscureText = false,
+    TextInputType keyboardType = TextInputType.text,
+    Widget? suffixIcon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.5,
+          ),
         ),
-      );
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.1),
+              width: 1,
+            ),
+          ),
+          child: TextField(
+            controller: controller,
+            obscureText: obscureText,
+            keyboardType: keyboardType,
+            style: const TextStyle(color: Colors.white, fontSize: 16),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(
+                color: Colors.white.withValues(alpha: 0.3),
+                fontSize: 15,
+              ),
+              prefixIcon: Icon(icon, color: Colors.white60, size: 22),
+              suffixIcon: suffixIcon,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(28),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(28),
+                borderSide: const BorderSide(
+                  color: Color(0xFF1976D2),
+                  width: 2,
+                ),
+              ),
+              filled: true,
+              fillColor: Colors.transparent,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 16,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }

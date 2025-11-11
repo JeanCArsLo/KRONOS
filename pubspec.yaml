@@ -1,4 +1,4 @@
-name: kronos_2
+name: KronosFit
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -30,6 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  page_transition: ^2.0.4
   carousel_slider: ^5.0.0
   table_calendar: ^3.0.9
   sqflite: ^2.3.3        # 🔥 SQLite
@@ -80,12 +81,16 @@ flutter:
     - assets/welcome/welcome3.png
     - assets/welcome/welcome4.jpg
     - assets/welcome/welcome5.png
+    
     #Imagenes del gym
     - assets/gym/gym1.jpg
     - assets/gym/gym2.jpg
     - assets/gym/gym3.jpg
     - assets/gym/gym4.jpg
     - assets/gym/gym5.jpg
+    - assets/gym/gym6.jpg
+    - assets/gym/gym7.jpg
+
     #Imagenes del los entrenadores
     - assets/trainers/trainer1.jpg
     - assets/trainers/trainer2.jpg
