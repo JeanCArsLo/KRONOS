@@ -30,7 +30,7 @@ class RecordPRScreenState extends State<RecordPRScreen> {
     try {
       // Obtener ID del usuario actual
       final prefs = await SharedPreferences.getInstance();
-      final idUsuario = prefs.getInt('userId');
+      final idUsuario = prefs.getInt('current_user_id');
 
       if (idUsuario == null) {
         setState(() => _isLoading = false);
