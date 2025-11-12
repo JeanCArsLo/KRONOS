@@ -8,7 +8,7 @@ plugins {
 android {
     namespace = "com.example.kronos_2"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.3.13750724"
+    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
