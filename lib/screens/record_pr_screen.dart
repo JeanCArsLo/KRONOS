@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../widgets/main_layout.dart';
 import '../dialogs/pesos_dialog.dart';
+import '../db/database_helper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RecordPRScreen extends StatefulWidget {
   const RecordPRScreen({super.key});
@@ -10,80 +12,181 @@ class RecordPRScreen extends StatefulWidget {
 }
 
 class RecordPRScreenState extends State<RecordPRScreen> {
-  // ========== DATOS DE EJERCICIOS ORGANIZADOS POR CATEGORÍA ==========
-  final Map<String, List<Map<String, dynamic>>> exercisesByCategory = {
-    'Espalda': [
-      {
-        'name': 'Jalón al pecho',
-        'image': 'assets/workout_area/superior/espalda/jalon_al_pecho.jpg',
-        'exerciseTitle': 'Espalda',
-      },
-      {
-        'name': 'Remo unilateral',
-        'image': 'assets/workout_area/superior/espalda/remo_unilateral.jpg',
-        'exerciseTitle': 'Espalda',
-      },
-      {
-        'name': 'Remo con barra inclinado',
-        'image': 'assets/workout_area/superior/espalda/remo_con_barra_inclinada.jpg',
-        'exerciseTitle': 'Espalda',
-      },
-      {
-        'name': 'Remo sentado',
-        'image': 'assets/workout_area/superior/espalda/remo_sentado.jpg',
-        'exerciseTitle': 'Espalda',
-      },
-    ],
-    'Pecho': [
-      {
-        'name': 'Cruce de poleas',
-        'image': 'assets/workout_area/superior/pecho/cruce_de_poleas.jpg',
-        'exerciseTitle': 'Pecho',
-      },
-      {
-        'name': 'Apertura en maquina',
-        'image': 'assets/workout_area/superior/pecho/apertura_en_maquina.jpg',
-        'exerciseTitle': 'Pecho',
-      },
-      {
-        'name': 'Press inclinado con mancuerna',
-        'image': 'assets/workout_area/superior/pecho/press_inclinado_con_mancuerna.jpg',
-        'exerciseTitle': 'Pecho',
-      },
-      {
-        'name': 'Press de banca inclinado con banca',
-        'image': 'assets/workout_area/superior/pecho/press_de_banca_inclinado_con_barra.jpg',
-        'exerciseTitle': 'Pecho',
-      },
-    ],
-    'Hombros': [
-      // Aquí puedes agregar los ejercicios de hombros cuando tengas las imágenes
-    ],
-  };
+  late DatabaseHelper _dbHelper;
+  Map<String, List<Map<String, dynamic>>> exercisesByCategory = {};
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _dbHelper = DatabaseHelper();
+    _loadExercisesWithRecords();
+  }
+
+  // 🔥 CARGAR SOLO EJERCICIOS CON RÉCORDS
+  Future<void> _loadExercisesWithRecords() async {
+    setState(() => _isLoading = true);
+
+    try {
+      // Obtener ID del usuario actual
+      final prefs = await SharedPreferences.getInstance();
+      final idUsuario = prefs.getInt('userId');
+
+      if (idUsuario == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      // Obtener todos los récords del usuario
+      final records = await _dbHelper.getRecordsByUsuario(idUsuario);
+
+      if (records.isEmpty) {
+        setState(() {
+          exercisesByCategory = {};
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // Agrupar por zona muscular
+      Map<String, List<Map<String, dynamic>>> tempMap = {};
+
+      for (var record in records) {
+        // Obtener info del ejercicio
+        final ejercicioData = await _dbHelper.database.then((db) async {
+          final result = await db.query(
+            'Ejercicio',
+            where: 'IdEjercicio = ?',
+            whereArgs: [record.idEjercicio],
+          );
+          return result.isNotEmpty ? result.first : null;
+        });
+
+        if (ejercicioData == null) continue;
+
+        // Obtener zona muscular
+        final zonaData = await _dbHelper.getZonaMuscularById(
+          ejercicioData['IdAreaM'] as int,
+        );
+
+        if (zonaData == null) continue;
+
+        final zonaNombre = zonaData['Nombre'] as String;
+        final ejercicioNombre = ejercicioData['Nombre'] as String;
+        final idPartesC = ejercicioData['IdPartesC'] as int;
+
+        // Construir ruta de imagen
+        final parteFolder = idPartesC == 1 ? 'superior' : 'inferior';
+        final zonaFolder = _normalizarTexto(zonaNombre);
+        final ejercicioFile = _normalizarTexto(ejercicioNombre);
+        final imagePath = 'assets/workout_area/$parteFolder/$zonaFolder/$ejercicioFile.jpg';
+
+        // Agregar al mapa por categoría
+        if (!tempMap.containsKey(zonaNombre)) {
+          tempMap[zonaNombre] = [];
+        }
+
+        // Verificar que no esté duplicado
+        final yaExiste = tempMap[zonaNombre]!.any(
+          (e) => e['idEjercicio'] == record.idEjercicio,
+        );
+
+        if (!yaExiste) {
+          tempMap[zonaNombre]!.add({
+            'name': ejercicioNombre,
+            'image': imagePath,
+            'exerciseTitle': zonaNombre,
+            'idEjercicio': record.idEjercicio,
+            'idUsuario': idUsuario,
+          });
+        }
+      }
+
+      setState(() {
+        exercisesByCategory = tempMap;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error cargando récords: $e');
+      setState(() => _isLoading = false);
+    }
+  }
+
+  // Normalizar texto para rutas de archivos
+  String _normalizarTexto(String texto) {
+    return texto
+        .toLowerCase()
+        .replaceAll('á', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ó', 'o')
+        .replaceAll('ú', 'u')
+        .replaceAll('ñ', 'n')
+        .replaceAll(' ', '_');
+  }
 
   @override
   Widget build(BuildContext context) {
     return MainLayout(
-      currentIndex: 1, // Índice para el ícono de medalla en el bottom navigation
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 10),
+      currentIndex: 1,
+      child: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : exercisesByCategory.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(30),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.fitness_center,
+                          size: 80,
+                          color: Colors.grey[400],
+                        ),
+                        SizedBox(height: 20),
+                        Text(
+                          'Aún no tienes récords registrados',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontFamily: 'JetBrainsMono_Regular',
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          'Comienza a entrenar y registra tus pesos para ver tus récords aquí',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontFamily: 'JetBrainsMono_Regular',
+                            fontSize: 12,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: 10),
 
-            // ========== SECCIONES DE EJERCICIOS ==========
-            ...exercisesByCategory.entries.map((category) {
-              return _buildExerciseCategory(
-                context,
-                category.key,
-                category.value,
-              );
-            }),//.toList(),
+                      // ========== SECCIONES DE EJERCICIOS ==========
+                      ...exercisesByCategory.entries.map((category) {
+                        return _buildExerciseCategory(
+                          context,
+                          category.key,
+                          category.value,
+                        );
+                      }),
 
-            SizedBox(height: 30),
-          ],
-        ),
-      ),
+                      SizedBox(height: 30),
+                    ],
+                  ),
+                ),
     );
   }
 
@@ -168,6 +271,10 @@ class RecordPRScreenState extends State<RecordPRScreen> {
               child: Image.asset(
                 exercise['image'],
                 fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: Colors.grey[300],
+                  child: Icon(Icons.fitness_center, size: 60, color: Colors.grey[600]),
+                ),
               ),
             ),
           ),
