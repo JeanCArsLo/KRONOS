@@ -5,6 +5,7 @@ class User {
   final String passwordHash; // contraseña hasheada
   final DateTime birthDate;
   final String gender; // 'M' o 'F'
+  final String? photoPath; // ← NUEVO: RUTA DE FOTO
 
   User({
     required this.id,
@@ -13,6 +14,7 @@ class User {
     required this.passwordHash,
     required this.birthDate,
     required this.gender,
+    this.photoPath,
   });
 
   // === FROM MAP (SEGURO CON FECHA) ===
@@ -54,6 +56,7 @@ class User {
       passwordHash: map['Contraseña'] as String? ?? '',
       birthDate: birthDate,
       gender: (map['Genero'] as String?)?.toUpperCase() == 'F' ? 'F' : 'M',
+      photoPath: map['FotoPerfil'] as String?, // ← FOTO
     );
   }
 
@@ -66,6 +69,7 @@ class User {
       'Contraseña': passwordHash,
       'Fecha_nac': birthDate.toIso8601String().split('T').first, // YYYY-MM-DD
       'Genero': gender.toUpperCase(),
+      'FotoPerfil': photoPath, // ← GUARDA FOTO
     };
   }
 
@@ -77,6 +81,7 @@ class User {
     String? passwordHash,
     DateTime? birthDate,
     String? gender,
+    String? photoPath, // ← NUEVO
   }) {
     return User(
       id: id ?? this.id,
@@ -85,6 +90,7 @@ class User {
       passwordHash: passwordHash ?? this.passwordHash,
       birthDate: birthDate ?? this.birthDate,
       gender: gender ?? this.gender,
+      photoPath: photoPath ?? this.photoPath,
     );
   }
 
@@ -101,6 +107,6 @@ class User {
 
   @override
   String toString() {
-    return 'User(id: $id, name: $fullName, email: $email, age: $age, gender: $gender)';
+    return 'User(id: $id, name: $fullName, email: $email, age: $age, gender: $gender, photo: $photoPath)';
   }
 }

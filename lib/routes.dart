@@ -11,6 +11,8 @@ import 'screens/exercise_detail_screen.dart';
 import 'screens/record_pr_screen.dart';
 import '../models/ejercicios.dart';
 import 'screens/ForgotPasswordScreen.dart';
+import 'screens/Profile_Screen.dart';
+import 'screens/edit_profile_screen.dart';
 
 class Routes {
   static const String splash = '/';
@@ -24,6 +26,8 @@ class Routes {
   static const String bodyPartExercises = '/superior-exercises';
   static const String exerciseDetail = '/exercise-detail';
   static const String recordPR = '/record-pr';
+  static const String profile = '/profile';
+  static const String editProfile = '/edit-profile';
   
 
   static Map<String, WidgetBuilder> getRoutes() {
@@ -48,6 +52,8 @@ class Routes {
           idAreaM: args?.idAreaM ?? 1,
         );
       },
+      editProfile: (context) => EditProfileScreen(), 
+      profile: (context) => ProfileScreen(),
     };
   }
   

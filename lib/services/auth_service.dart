@@ -1,6 +1,7 @@
 // services/auth_service.dart
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../db/database_helper.dart';
 import '../models/user.dart';
 
@@ -23,7 +24,6 @@ class AuthService {
     required String gender,
   }) async {
     try {
-      // === VALIDACIONES ===
       if (email.isEmpty || fullName.isEmpty || password.isEmpty) {
         throw Exception('Completa todos los campos');
       }
@@ -43,38 +43,83 @@ class AuthService {
         throw Exception('Género debe ser M o F');
       }
 
-      // === VERIFICAR DUPLICADOS ===
       final existingUser = await _dbHelper.getUserByEmail(email);
       if (existingUser != null) {
         throw Exception('El correo ya está registrado');
       }
 
-      // === CREAR USUARIO CON HASH ===
       final user = User(
         id: 0,
         fullName: fullName,
         email: email,
-        passwordHash: _hashPassword(password), // ← ENCRIPTADA
+        passwordHash: _hashPassword(password),
         birthDate: birthDate,
         gender: gender,
+        photoPath: null, // ← FOTO INICIAL
       );
 
-      await _dbHelper.insertUser(user);
+      final userId = await _dbHelper.insertUser(user);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('current_user_id', userId);
     } catch (e) {
       rethrow;
     }
   }
 
-  // === LOGIN POR CORREO ===
+  // === LOGIN ===
   Future<User?> login(String email, String password) async {
     final user = await _dbHelper.getUserByEmail(email);
     if (user != null && user.passwordHash == _hashPassword(password)) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('current_user_id', user.id);
       return user;
     }
     return null;
   }
 
-  // === VERIFICAR SI EL CORREO EXISTE (PARA CAMBIO DE CONTRASEÑA) ===
+  // === OBTENER USUARIO ACTUAL (RECARGA FOTO Y NOMBRE) ===
+  Future<User?> getCurrentUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getInt('current_user_id');
+    if (userId == null) return null;
+
+    return await _dbHelper.getUserById(userId);
+  }
+
+  // === ACTUALIZAR PERFIL (NOMBRE + FOTO) ===
+  Future<void> updateProfile({
+    required String newName,
+    String? newPhotoPath,
+  }) async {
+    final currentUser = await getCurrentUser();
+    if (currentUser == null) throw Exception('No hay sesión activa');
+
+    final db = DatabaseHelper();
+
+    if (newName.trim().isNotEmpty) {
+      await db.updateUserName(currentUser.id, newName.trim());
+    }
+
+    if (newPhotoPath != null) {
+      await db.updateUserPhoto(currentUser.id, newPhotoPath);
+    }
+
+    // SESIÓN SIGUE ACTIVA → NO TOCAMOS SharedPreferences
+  }
+
+  // === CERRAR SESIÓN ===
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('current_user_id');
+  }
+
+  // === VERIFICAR SESIÓN ===
+  Future<bool> isLoggedIn() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.containsKey('current_user_id');
+  }
+
+  // === VERIFICAR SI EL CORREO EXISTE ===
   Future<bool> userExists(String email) async {
     final user = await _dbHelper.getUserByEmail(email);
     return user != null;
@@ -82,21 +127,7 @@ class AuthService {
 
   // === ACTUALIZAR CONTRASEÑA ===
   Future<void> updatePassword(String email, String newPassword) async {
-    try {
-      final user = await _dbHelper.getUserByEmail(email);
-      if (user == null) {
-        throw Exception('Usuario no encontrado');
-      }
-
-      final hashed = _hashPassword(newPassword);
-      await _dbHelper.updateUserPassword(email, hashed);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  // === OBTENER USUARIO ACTUAL (FUTURO) ===
-  Future<User?> getCurrentUser() async {
-    return null; // Implementar con SharedPreferences
+    final hashed = _hashPassword(newPassword);
+    await _dbHelper.updateUserPassword(email, hashed);
   }
 }

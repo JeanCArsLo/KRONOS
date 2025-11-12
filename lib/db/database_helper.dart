@@ -20,7 +20,7 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'app_database.db');
     return await openDatabase(
       path,
-      version: 2, // ¡SUBIMOS LA VERSIÓN!
+      version: 3, // ¡SUBIMOS LA VERSIÓN!
       onCreate: _onCreate,
       onUpgrade: _onUpgrade, // Para migrar datos existentes
     );
@@ -32,11 +32,12 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE Usuario (
         IdUsuario INTEGER PRIMARY KEY AUTOINCREMENT,
-        Nombres VARCHAR(100) NOT NULL,
-        Correo VARCHAR(100) NOT NULL UNIQUE,
+        Nombres text NOT NULL,
+        Correo text NOT NULL UNIQUE,
         Contraseña TEXT NOT NULL,
         Fecha_nac DATE NOT NULL,
-        Genero CHAR(1) NOT NULL CHECK (Genero IN ('M', 'F'))
+        Genero CHAR(1) NOT NULL CHECK (Genero IN ('M', 'F')),
+        FotoPerfil TEXT
       )
     ''');
     // Nueva tabla: PartesCuerpo (contiene las partes generales del cuerpo como Tren Superior, Tren Inferior)
@@ -100,6 +101,10 @@ class DatabaseHelper {
 
       // Eliminar tabla vieja
       await db.execute('DROP TABLE users_old');
+    }
+    // MIGRACIÓN VERSIÓN 3: FOTO DE PERFIL
+    if (oldVersion < 3) {
+      await db.execute('ALTER TABLE Usuario ADD COLUMN FotoPerfil TEXT');
     }
   }
 
@@ -606,5 +611,39 @@ class DatabaseHelper {
       where: 'Correo = ?',
       whereArgs: [email],
     );
+  }
+  // ACTUALIZAR NOMBRE
+  Future<void> updateUserName(int userId, String newName) async {
+    final db = await database;
+    await db.update(
+      'Usuario',
+      {'Nombres': newName},
+      where: 'IdUsuario = ?',
+      whereArgs: [userId],
+    );
+  }
+
+  // ACTUALIZAR FOTO
+  Future<void> updateUserPhoto(int userId, String photoPath) async {
+    final db = await database;
+    await db.update(
+      'Usuario',
+      {'FotoPerfil': photoPath},
+      where: 'IdUsuario = ?',
+      whereArgs: [userId],
+    );
+  }
+  // === OBTENER USUARIO POR ID ===
+  Future<User?> getUserById(int id) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'Usuario',
+      where: 'IdUsuario = ?',
+      whereArgs: [id],
+    );
+    if (maps.isNotEmpty) {
+      return User.fromMap(maps.first);
+    }
+    return null;
   }
 }

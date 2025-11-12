@@ -5,6 +5,7 @@ import '../screens/calendar_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/record_pr_screen.dart';
 import '../screens/workout_area_screen.dart';
+import '../screens/Profile_Screen.dart';
 
 class MainLayout extends StatefulWidget {
   final Widget child; // ← El contenido que cambia
@@ -169,14 +170,14 @@ class _MainLayoutState extends State<MainLayout> {
             );
             break;
           case 4:
-            // Navigator.push(
-            //   context,
-            //   PageTransition(
-            //     type: PageTransitionType.fade,
-            //     duration: Duration(milliseconds: 300),
-            //     child: ProfileScreen(), // ← Widget directo
-            //   ),
-            // );
+            Navigator.push(
+              context,
+              PageTransition(
+                type: PageTransitionType.fade,
+                duration: Duration(milliseconds: 300),
+                child: ProfileScreen(), // ← Widget directo
+              ),
+            );
             break;
         }
       },
