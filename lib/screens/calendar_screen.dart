@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:flutter/services.dart';
+import 'package:rive/rive.dart';
 import '../widgets/main_layout.dart';
 import '../dialogs/streak_detail_dialog.dart';
 
@@ -14,263 +16,289 @@ class CalendarScreenState extends State<CalendarScreen> {
   late DateTime _selectedDay;
   late DateTime _focusedDay;
 
+  Artboard? _artboard;
+  late RiveAnimationController _controller;
+
+  // 🔹 Variables para tamaño y posición de la mascota
+  double _mascotaWidth = 250;
+  double _mascotaHeight = 250;
+  Offset _mascotaOffset = const Offset(145, 10);
+
   @override
   void initState() {
     super.initState();
+
     _selectedDay = DateTime.now();
     _focusedDay = DateTime.now();
+
+    // Cargar Rive
+    rootBundle.load('assets/mascota/PetanimU.riv').then((data) {
+      final file = RiveFile.import(data);
+      final artboard = file.mainArtboard;
+
+      var controller = SimpleAnimation('idle');
+      if (!artboard.animations.any((a) => a.name == 'idle')) {
+        controller = SimpleAnimation('Petidle');
+      }
+
+      artboard.addController(controller);
+
+      setState(() {
+        _artboard = artboard;
+        _controller = controller;
+      });
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return MainLayout(
-      currentIndex: 0, // ← Marca el icono de Calendario
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Divider(
-              color: const Color.fromARGB(255, 0, 4, 255),
-              thickness: 2,
-              indent: 20,
-              endIndent: 20,
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                '  CALENDARIO',
-                style: TextStyle(
-                  fontFamily: 'JetBrainsMono_Regular',
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
-                ),
+      currentIndex: 0,
+      child: Stack(
+        children: [
+          // ********************* MASCOTA DETRÁS DE TODO *********************
+          Positioned(
+            left: _mascotaOffset.dx,
+            top: _mascotaOffset.dy,
+            child: IgnorePointer(
+              child: SizedBox(
+                width: _mascotaWidth,
+                height: _mascotaHeight,
+                child: _artboard == null
+                    ? const Text(
+                  'Cargando...',
+                  style: TextStyle(color: Colors.white),
+                )
+                    : Rive(artboard: _artboard!),
               ),
             ),
-            Divider(
-              color: const Color.fromARGB(255, 0, 4, 255),
-              thickness: 2,
-              indent: 20,
-              endIndent: 20,
-            ),
+          ),
 
-            SizedBox(height: 15),
-
-            // ========== ENCABEZADO CON FECHA Y RACHA ==========
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // ********************* CONTENIDO PRINCIPAL *********************
+            SingleChildScrollView(
+              physics: const NeverScrollableScrollPhysics(), // ⛔ scroll bloqueado
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // COLUMNA 1: Fecha y Racha
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.orange,
-                        width: 2,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
+                const Divider(
+                  color: Color.fromARGB(255, 0, 4, 255),
+                  thickness: 2,
+                  indent: 20,
+                  endIndent: 20,
+                ),
+
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    ' CALENDARIO',
+                    style: TextStyle(
+                      fontFamily: 'JetBrainsMono_Regular',
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
                     ),
-                    padding: EdgeInsets.all(15),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+                ),
+
+                const Divider(
+                  color: Color.fromARGB(255, 0, 4, 255),
+                  thickness: 2,
+                  indent: 20,
+                  endIndent: 20,
+                ),
+
+                const SizedBox(height: 15),
+
+                // ================= ENCABEZADO =================
+                Transform.translate(
+                  offset: const Offset(0, -25), // 🔼 Mueve el cuadro día/racha hacia arriba
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 15),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Fecha
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${_selectedDay.day}',
-                              style: TextStyle(
-                                fontFamily: 'JetBrainsMono_Regular',
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
+                        // 🧾 CONTADOR
+                        Container(
+                          width: MediaQuery.of(context).size.width * 0.45,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.orange, width: 2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.all(15),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${_selectedDay.day}',
+                                    style: const TextStyle(
+                                      fontFamily: 'JetBrainsMono_Regular',
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Column(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        _getMonth(_selectedDay),
+                                        style: const TextStyle(
+                                          fontFamily: 'JetBrainsMono_Regular',
+                                          fontSize: 12,
+                                          color: Colors.white70,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${_selectedDay.year}',
+                                        style: const TextStyle(
+                                          fontFamily: 'JetBrainsMono_Regular',
+                                          fontSize: 12,
+                                          color: Colors.white70,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                            ),
-                            SizedBox(width: 10),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _getMonth(_selectedDay),
-                                  style: TextStyle(
-                                    fontFamily: 'JetBrainsMono_Regular',
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.grey[700],
+                              const SizedBox(height: 15),
+                              Row(
+                                children: const [
+                                  Column(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '07',
+                                        style: TextStyle(
+                                          fontFamily: 'JetBrainsMono_Regular',
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      Text(
+                                        'racha',
+                                        style: TextStyle(
+                                          fontFamily: 'JetBrainsMono_Regular',
+                                          fontSize: 10,
+                                          color: Colors.white70,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                Text(
-                                  '${_selectedDay.year}',
-                                  style: TextStyle(
-                                    fontFamily: 'JetBrainsMono_Regular',
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.grey[700],
+                                  SizedBox(width: 10),
+                                  Icon(
+                                    Icons.local_fire_department,
+                                    color: Colors.orange,
+                                    size: 32,
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 15),
-                        // Racha
-                        Row(
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '07',
-                                  style: TextStyle(
-                                    fontFamily: 'JetBrainsMono_Regular',
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                Text(
-                                  'racha',
-                                  style: TextStyle(
-                                    fontFamily: 'JetBrainsMono_Regular',
-                                    fontSize: 10,
-                                    color: Colors.grey[700],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(width: 10),
-                            Icon(Icons.local_fire_department,
-                                color: Colors.orange, size: 32),
-                          ],
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  // COLUMNA 2: Mascota
-                  GestureDetector(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => StreakDetailDialog(
-                          streakDays: 7,
-                          petEmoji: '🐯',
+                ),
+
+                const SizedBox(height: 10),
+
+                // ================= CALENDARIO REDUCIDO + MOVIDO HACIA ARRIBA =================
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
+                  child: Transform.translate(
+                    offset: const Offset(0, -45), // 🔼 Mueve el calendario hacia arriba
+                    child: Transform.scale(
+                      scale: 0.90,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                      );
-                    },
-                    child: Text(
-                      '🐯',
-                      style: TextStyle(fontSize: 80),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            SizedBox(height: 20),
-
-            // ========== CALENDARIO ==========
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withValues(alpha: 0.1),
-                      blurRadius: 8,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: TableCalendar(
-                  firstDay: DateTime(2020),
-                  lastDay: DateTime(2030),
-                  focusedDay: _focusedDay,
-                  selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                  onDaySelected: (selectedDay, focusedDay) {
-                    setState(() {
-                      _selectedDay = selectedDay;
-                      _focusedDay = focusedDay;
-                      // ========== AQUÍ VA LA LÓGICA CUANDO SELECCIONES UN DÍA ==========
-                      // Por ejemplo: cargar entrenamientos, eventos, etc.
-                    });
-                  },
-                  onPageChanged: (focusedDay) {
-                    _focusedDay = focusedDay;
-                  },
-                  calendarStyle: CalendarStyle(
-                    todayDecoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.3),
-                      shape: BoxShape.circle,
-                    ),
-                    selectedDecoration: BoxDecoration(
-                      color: Colors.blue,
-                      shape: BoxShape.circle,
-                    ),
-                    selectedTextStyle: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    weekendTextStyle: TextStyle(
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                  headerStyle: HeaderStyle(
-                    formatButtonVisible: false,
-                    titleCentered: true,
-                    titleTextStyle: TextStyle(
-                      fontFamily: 'JetBrainsMono_Regular',
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    leftChevronIcon: Icon(Icons.chevron_left),
-                    rightChevronIcon: Icon(Icons.chevron_right),
-                  ),
-                  daysOfWeekStyle: DaysOfWeekStyle(
-                    weekdayStyle: TextStyle(
-                      fontFamily: 'JetBrainsMono_Regular',
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    weekendStyle: TextStyle(
-                      fontFamily: 'JetBrainsMono_Regular',
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
+                        child: TableCalendar(
+                          firstDay: DateTime(2020),
+                          lastDay: DateTime(2030),
+                          focusedDay: _focusedDay,
+                          selectedDayPredicate: (day) =>
+                              isSameDay(_selectedDay, day),
+                          onDaySelected: (selectedDay, focusedDay) {
+                            setState(() {
+                              _selectedDay = selectedDay;
+                              _focusedDay = focusedDay;
+                            });
+                          },
+                          onPageChanged: (focusedDay) {
+                            _focusedDay = focusedDay;
+                          },
+                          calendarStyle: CalendarStyle(
+                            todayDecoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.3),
+                              shape: BoxShape.circle,
+                            ),
+                            selectedDecoration: const BoxDecoration(
+                              color: Colors.blue,
+                              shape: BoxShape.circle,
+                            ),
+                            selectedTextStyle: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            weekendTextStyle: TextStyle(
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          headerStyle: const HeaderStyle(
+                            formatButtonVisible: false,
+                            titleCentered: true,
+                            titleTextStyle: TextStyle(
+                              fontFamily: 'JetBrainsMono_Regular',
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            leftChevronIcon: Icon(Icons.chevron_left),
+                            rightChevronIcon: Icon(Icons.chevron_right),
+                          ),
+                          daysOfWeekStyle: const DaysOfWeekStyle(
+                            weekdayStyle: TextStyle(
+                              fontFamily: 'JetBrainsMono_Regular',
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            weekendStyle: TextStyle(
+                              fontFamily: 'JetBrainsMono_Regular',
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
 
-            SizedBox(height: 30),
-          ],
-        ),
+                const SizedBox(height: 70),
+              ],
+            ),
+            ),
+        ],
       ),
     );
   }
 
-  // ========== FUNCIÓN AUXILIAR PARA OBTENER MES Y AÑO ==========
-  // String _getMonthYear(DateTime date) {
-  //   final months = [
-  //     'January',
-  //     'February',
-  //     'March',
-  //     'April',
-  //     'May',
-  //     'June',
-  //     'July',
-  //     'August',
-  //     'September',
-  //     'October',
-  //     'November',
-  //     'December'
-  //   ];
-  //   return '${months[date.month - 1]} ${date.year}';
-  // }
-  // ========== FUNCIÓN AUXILIAR PARA OBTENER SOLO EL MES ==========
   String _getMonth(DateTime date) {
     final months = [
       'January',
