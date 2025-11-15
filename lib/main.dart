@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import 'routes.dart';
+import 'rive_cache.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Precargar ANTES de abrir la app
+  await RiveCache.precargarMascotaCalendario();
+  await RiveCache.precargarMascotaPopup();
+
   runApp(const MyApp());
 }
 
