@@ -23,12 +23,10 @@ class RecordPRScreenState extends State<RecordPRScreen> {
     _loadExercisesWithRecords();
   }
 
-  // 🔥 CARGAR SOLO EJERCICIOS CON RÉCORDS
   Future<void> _loadExercisesWithRecords() async {
     setState(() => _isLoading = true);
 
     try {
-      // Obtener ID del usuario actual
       final prefs = await SharedPreferences.getInstance();
       final idUsuario = prefs.getInt('current_user_id');
 
@@ -37,7 +35,6 @@ class RecordPRScreenState extends State<RecordPRScreen> {
         return;
       }
 
-      // Obtener todos los récords del usuario
       final records = await _dbHelper.getRecordsByUsuario(idUsuario);
 
       if (records.isEmpty) {
@@ -48,11 +45,9 @@ class RecordPRScreenState extends State<RecordPRScreen> {
         return;
       }
 
-      // Agrupar por zona muscular
       Map<String, List<Map<String, dynamic>>> tempMap = {};
 
       for (var record in records) {
-        // Obtener info del ejercicio
         final ejercicioData = await _dbHelper.database.then((db) async {
           final result = await db.query(
             'Ejercicio',
@@ -64,7 +59,6 @@ class RecordPRScreenState extends State<RecordPRScreen> {
 
         if (ejercicioData == null) continue;
 
-        // Obtener zona muscular
         final zonaData = await _dbHelper.getZonaMuscularById(
           ejercicioData['IdAreaM'] as int,
         );
@@ -75,18 +69,16 @@ class RecordPRScreenState extends State<RecordPRScreen> {
         final ejercicioNombre = ejercicioData['Nombre'] as String;
         final idPartesC = ejercicioData['IdPartesC'] as int;
 
-        // Construir ruta de imagen
         final parteFolder = idPartesC == 1 ? 'superior' : 'inferior';
         final zonaFolder = _normalizarTexto(zonaNombre);
         final ejercicioFile = _normalizarTexto(ejercicioNombre);
-        final imagePath = 'assets/workout_area/$parteFolder/$zonaFolder/$ejercicioFile.jpg';
+        final imagePath =
+            'assets/workout_area/$parteFolder/$zonaFolder/$ejercicioFile.jpg';
 
-        // Agregar al mapa por categoría
         if (!tempMap.containsKey(zonaNombre)) {
           tempMap[zonaNombre] = [];
         }
 
-        // Verificar que no esté duplicado
         final yaExiste = tempMap[zonaNombre]!.any(
           (e) => e['idEjercicio'] == record.idEjercicio,
         );
@@ -112,7 +104,6 @@ class RecordPRScreenState extends State<RecordPRScreen> {
     }
   }
 
-  // Normalizar texto para rutas de archivos
   String _normalizarTexto(String texto) {
     return texto
         .toLowerCase()
@@ -129,68 +120,81 @@ class RecordPRScreenState extends State<RecordPRScreen> {
   Widget build(BuildContext context) {
     return MainLayout(
       currentIndex: 1,
-      child: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : exercisesByCategory.isEmpty
-              ? Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(30),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.fitness_center,
-                          size: 80,
-                          color: Colors.grey[400],
-                        ),
-                        SizedBox(height: 20),
-                        Text(
-                          'Aún no tienes récords registrados',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontFamily: 'JetBrainsMono_Regular',
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          'Comienza a entrenar y registra tus pesos para ver tus récords aquí',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontFamily: 'JetBrainsMono_Regular',
-                            fontSize: 12,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              : SingleChildScrollView(
+      child: Container(
+        color: Color(0xFF0A0A0A),
+        child: _isLoading
+            ? Center(child: CircularProgressIndicator(color: Color(0xFF2563eb)))
+            : exercisesByCategory.isEmpty
+            ? Center(
+                child: Padding(
+                  padding: EdgeInsets.all(30),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SizedBox(height: 10),
-
-                      // ========== SECCIONES DE EJERCICIOS ==========
-                      ...exercisesByCategory.entries.map((category) {
-                        return _buildExerciseCategory(
-                          context,
-                          category.key,
-                          category.value,
-                        );
-                      }),
-
+                      Container(
+                        padding: EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Color(0xFF1A1A1A),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Color(0xFF2563eb),
+                            width: 2,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.fitness_center,
+                          size: 60,
+                          color: Color(0xFF2563eb),
+                        ),
+                      ),
                       SizedBox(height: 30),
+                      Text(
+                        'Aún no tienes récords registrados',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'JetBrainsMono_Regular',
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFC0C0C0),
+                        ),
+                      ),
+                      SizedBox(height: 12),
+                      Text(
+                        'Comienza a entrenar y registra tus pesos\npara ver tus récords aquí',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'JetBrainsMono_Regular',
+                          fontSize: 12,
+                          color: Color(0xFF808080),
+                          height: 1.5,
+                        ),
+                      ),
                     ],
                   ),
                 ),
+              )
+            : SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 20),
+
+                    ...exercisesByCategory.entries.map((category) {
+                      return _buildExerciseCategory(
+                        context,
+                        category.key,
+                        category.value,
+                      );
+                    }),
+
+                    SizedBox(height: 30),
+                  ],
+                ),
+              ),
+      ),
     );
   }
 
-  // ========== WIDGET PARA CADA CATEGORÍA ==========
   Widget _buildExerciseCategory(
     BuildContext context,
     String categoryName,
@@ -201,37 +205,38 @@ class RecordPRScreenState extends State<RecordPRScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ========== TÍTULO DE LA CATEGORÍA CON DIVIDERS ==========
-        Divider(
-          color: const Color.fromARGB(255, 0, 4, 255),
-          thickness: 2,
-          indent: 20,
-          endIndent: 20,
-        ),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 20),
-          child: Text(
-            " $categoryName",
-            style: TextStyle(
-              fontFamily: 'JetBrainsMono_Regular',
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.8,
-            ),
+          child: Row(
+            children: [
+              Container(
+                width: 4,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: Color(0xFF2563eb),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              SizedBox(width: 12),
+              Text(
+                categoryName.toUpperCase(),
+                style: TextStyle(
+                  fontFamily: 'JetBrainsMono_Regular',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.5,
+                  color: Color(0xFFFFFFFF),
+                ),
+              ),
+            ],
           ),
         ),
-        Divider(
-          color: const Color.fromARGB(255, 0, 4, 255),
-          thickness: 2,
-          indent: 20,
-          endIndent: 20,
-        ),
 
-        SizedBox(height: 15),
+        SizedBox(height: 16),
 
-        // ========== CARRUSEL HORIZONTAL DE EJERCICIOS ==========
+        // ✅ Altura reducida a 240
         SizedBox(
-          height: 250,
+          height: 240,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: EdgeInsets.symmetric(horizontal: 15),
@@ -250,83 +255,149 @@ class RecordPRScreenState extends State<RecordPRScreen> {
     );
   }
 
-  // ========== TARJETA DE EJERCICIO INDIVIDUAL ==========
-  Widget _buildExerciseCard(BuildContext context, Map<String, dynamic> exercise) {
+  Widget _buildExerciseCard(
+    BuildContext context,
+    Map<String, dynamic> exercise,
+  ) {
     return Container(
-      width: 240,
+      // ✅ Ancho aumentado a 280
+      width: 280,
       decoration: BoxDecoration(
-        border: Border.all(
-          color: const Color.fromARGB(255, 0, 0, 0),
-          width: 1.5,
-        ),
-        borderRadius: BorderRadius.circular(8),
+        color: Color(0xFF1A1A1A),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Color(0xFF303030), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x66000000),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ========== IMAGEN DEL EJERCICIO ==========
+          // ========== IMAGEN — SIN CAPA NEGRA, DIRECTA ==========
           Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(6)),
-              child: Image.asset(
-                exercise['image'],
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  color: Colors.grey[300],
-                  child: Icon(Icons.fitness_center, size: 60, color: Colors.grey[600]),
-                ),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(11)),
               ),
-            ),
-          ),
-
-          // ========== NOMBRE DEL EJERCICIO ==========
-          Padding(
-            padding: EdgeInsets.all(8),
-            child: Text(
-              exercise['name'],
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'JetBrainsMono_Regular',
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.3,
-                height: 1.2,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-
-          // ========== BOTÓN "Pesos" ==========
-          Padding(
-            padding: EdgeInsets.only(left: 8, right: 8, bottom: 8),
-            child: ElevatedButton(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => PesosDialog(
-                    exercise: exercise,
+              padding: EdgeInsets.all(2),
+              child: ClipRRect(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+                child: Image.asset(
+                  exercise['image'],
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    color: Color(0xFF0F0F0F),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.fitness_center,
+                          size: 50,
+                          color: Color(0xFF505050),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Sin imagen',
+                          style: TextStyle(
+                            color: Color(0xFF505050),
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 255, 140, 0),
-                padding: EdgeInsets.symmetric(vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                elevation: 0,
-              ),
-              child: Text(
-                'Pesos',
-                style: TextStyle(
-                  fontFamily: 'JetBrainsMono_Regular',
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                  letterSpacing: 0.5,
                 ),
               ),
+            ),
+          ),
+
+          // ========== CONTENEDOR INFERIOR ==========
+          Container(
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Color(0xFF0F0F0F),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(11)),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  exercise['name'],
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'JetBrainsMono_Regular',
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                    height: 1.3,
+                    color: Color(0xFFE0E0E0),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+
+                SizedBox(height: 12),
+
+                // ✅ BOTÓN CON FONDO TRANSPARENTE Y BORDE NARANJA
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Color(0xFFff6b35), // 🔥 Borde naranja
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0x66ff6b35), // Sombra naranja suave
+                        blurRadius: 6,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => PesosDialog(exercise: exercise),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          Colors.transparent, // ✅ Fondo transparente
+                      shadowColor: Colors.transparent,
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.military_tech,
+                          size: 16,
+                          color: Colors.white, // ✅ Icono blanco
+                        ),
+                        SizedBox(width: 6),
+                        Text(
+                          'VER RÉCORDS',
+                          style: TextStyle(
+                            fontFamily: 'JetBrainsMono_Regular',
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white, // ✅ Texto blanco
+                            letterSpacing: 1,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

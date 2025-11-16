@@ -51,7 +51,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (pickedFile != null) {
       final appDir = await getApplicationDocumentsDirectory();
       final fileName = path.basename(pickedFile.path);
-      final savedImage = await File(pickedFile.path).copy('${appDir.path}/$fileName');
+      final savedImage = await File(
+        pickedFile.path,
+      ).copy('${appDir.path}/$fileName');
       setState(() => _image = savedImage);
     }
   }
@@ -72,9 +74,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('¡Perfil actualizado!'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('¡Perfil actualizado!'),
+            backgroundColor: Color(0xFF2563eb), // Color azul en lugar de verde
+          ),
         );
-        
+
         Navigator.pop(context, true);
       }
     } catch (e) {
@@ -91,53 +96,91 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return MainLayout(
       currentIndex: 4,
       child: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF003D82)),
-            onPressed: () => Navigator.pop(context),
-          ),
-          title: const Text('Editar Perfil', style: TextStyle(color: Color(0xFF003D82), fontFamily: 'JetBrainsMono_Regular')),
-        ),
+        backgroundColor: Colors
+            .transparent, // Fondo transparente para mostrar el degradado de MainLayout
         body: _user == null
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(
+                child: CircularProgressIndicator(color: Color(0xFF2563eb)),
+              )
             : Form(
                 key: _formKey,
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 30),
 
-                      // FOTO
+                      // ========== SOLO LA PALABRA "EDITAR PERFIL" EN EL CENTRO ==========
+                      Center(
+                        child: Text(
+                          'EDITAR PERFIL',
+                          style: const TextStyle(
+                            fontFamily: 'JetBrainsMono_Regular',
+                            fontSize: 24, // Tamaño grande y visible
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                            color: Colors.white, // Color blanco
+                          ),
+                        ),
+                      ),
+
+                      // ✅ QUITADA LA RAYA AZUL: const Divider(...),
+                      const SizedBox(height: 30),
+
+                      // ========== FOTO DE PERFIL CON BORDE GRADIENTE ==========
                       Stack(
                         children: [
-                          CircleAvatar(
-                            radius: 60,
-                            backgroundColor: const Color(0xFF003D82),
+                          Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [
+                                  Color(0xFFE0E0E0),
+                                  Color(0xFFC0C0C0),
+                                  Color(0xFF8D8D8D),
+                                ],
+                              ),
+                            ),
                             child: CircleAvatar(
-                              radius: 56,
-                              backgroundColor: Colors.white,
-                              backgroundImage: _image != null ? FileImage(_image!) : null,
+                              radius: 60, // Ajustado para el padding
+                              backgroundColor: Color(
+                                0xFF1A1A1A,
+                              ), // Fondo oscuro dentro del borde
+                              backgroundImage: _image != null
+                                  ? FileImage(_image!)
+                                  : null,
                               child: _image == null
-                                  ? const Icon(Icons.person, size: 70, color: Color(0xFF003D82))
+                                  ? Icon(
+                                      Icons.person_outline,
+                                      size: 60, // Ajustado
+                                      color: Color(0xFF505050),
+                                    )
                                   : null,
                             ),
                           ),
                           Positioned(
-                            bottom: 0,
-                            right: 0,
+                            bottom: 5, // Ajustado para centrar el botón
+                            right: 5,
                             child: GestureDetector(
                               onTap: _pickImage,
                               child: Container(
                                 padding: const EdgeInsets.all(8),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFFF8C42),
+                                decoration: BoxDecoration(
+                                  color: Color(
+                                    0xFF2563eb,
+                                  ), // Azul en lugar de naranja
                                   shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Color(0xFFC0C0C0), // Borde plateado
+                                    width: 1,
+                                  ),
                                 ),
-                                child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                                child: const Icon(
+                                  Icons.camera_alt,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
                               ),
                             ),
                           ),
@@ -145,30 +188,94 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                       const SizedBox(height: 40),
 
-                      // NOMBRE
-                      TextFormField(
-                        controller: _nameController,
-                        validator: (val) => val!.trim().isEmpty ? 'Ingresa tu nombre' : null,
-                        decoration: InputDecoration(
-                          labelText: 'Nombre completo',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      // ========== CAMPO DE NOMBRE CON ESTILO ==========
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Color(
+                            0xFF1A1A1A,
+                          ), // Fondo oscuro para el campo
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Color(0xFF303030), // Borde sutil
+                            width: 1,
+                          ),
+                        ),
+                        child: TextFormField(
+                          controller: _nameController,
+                          validator: (val) =>
+                              val!.trim().isEmpty ? 'Ingresa tu nombre' : null,
+                          style: const TextStyle(
+                            color: Color(0xFFE0E0E0), // Texto plateado
+                            fontFamily: 'JetBrainsMono_Regular',
+                          ),
+                          decoration: InputDecoration(
+                            labelText: 'Nombre completo',
+                            labelStyle: const TextStyle(
+                              color: Color(0xFF808080), // Etiqueta gris clara
+                              fontFamily: 'JetBrainsMono_Regular',
+                              fontSize: 12,
+                            ),
+                            // Elimina el borde predeterminado
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors
+                                    .transparent, // Borde inferior transparente
+                              ),
+                            ),
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Color(
+                                  0xFF2563eb,
+                                ), // Borde inferior azul al enfocar
+                              ),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal:
+                                  0, // El padding horizontal ya lo maneja el contenedor exterior
+                              vertical: 16,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 40),
 
-                      // GUARDAR
-                      ElevatedButton(
-                        onPressed: _isLoading ? null : _saveProfile,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF003D82),
-                          minimumSize: const Size(double.infinity, 55),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                      // ========== BOTÓN GUARDAR CON ESTILO ==========
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: _isLoading ? null : _saveProfile,
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                            ), // Ajustado padding
+                            side: BorderSide(
+                              color: Color(0xFF2563eb), // Borde azul
+                              width: 2,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            backgroundColor: Colors.transparent,
+                          ),
+                          child: _isLoading
+                              ? const CircularProgressIndicator(
+                                  color: Color(0xFF2563eb),
+                                  strokeWidth: 2, // Ajustado para consistencia
+                                )
+                              : const Text(
+                                  'GUARDAR',
+                                  style: TextStyle(
+                                    fontFamily: 'JetBrainsMono_Regular',
+                                    fontSize: 14,
+                                    color: Color(0xFF2563eb), // Texto azul
+                                    letterSpacing: 1.0,
+                                  ),
+                                ),
                         ),
-                        child: _isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text('GUARDAR', style: TextStyle(color: Colors.white, fontFamily: 'JetBrainsMono_Regular')),
                       ),
+
+                      const SizedBox(height: 30),
                     ],
                   ),
                 ),

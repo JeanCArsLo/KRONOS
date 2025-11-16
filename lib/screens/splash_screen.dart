@@ -61,7 +61,7 @@ class SplashScreenState extends State<SplashScreen>
   }
 
   _navigateToWelcome() async {
-    await Future.delayed(Duration(seconds: 8));
+    await Future.delayed(Duration(seconds: 5));
     if (!mounted) return;
     Navigator.pushReplacementNamed(context, Routes.welcome);
   }

@@ -5,7 +5,7 @@ import '../db/database_helper.dart';
 import '../models/ejercicios.dart';
 
 class BodyPartExercisesScreen extends StatefulWidget {
-  final int? idPartesC; // Recibe el ID de la parte del cuerpo (1 = Superior, 2 = Inferior)
+  final int? idPartesC;
   const BodyPartExercisesScreen({super.key, this.idPartesC});
 
   @override
@@ -37,131 +37,184 @@ class BodyPartExercisesScreenState extends State<BodyPartExercisesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Determine the folder and title based on idPartesC
     String folder = widget.idPartesC == 1 ? 'superior' : 'inferior';
     String title = widget.idPartesC == 1 ? 'TREN SUPERIOR' : 'TREN INFERIOR';
 
     return MainLayout(
       currentIndex: 3,
-      child: Column( // ← Cambia SingleChildScrollView por Column aquí
+      child: Column(
         children: [
-          // ========== TÍTULO SIEMPRE ARRIBA ==========
-          Divider(
-            color: const Color.fromARGB(255, 0, 4, 255),
-            thickness: 2,
-            indent: 20,
-            endIndent: 20,
-          ),
+          SizedBox(height: 20),
+
           Padding(
-            padding: EdgeInsets.only(left: 20, right: 20),
-            child: Align(
-              alignment: Alignment.centerLeft, // ← FUERZA alineación izquierda
-              child: Text(
-                " $title",
-                style: TextStyle(
-                  fontFamily: 'JetBrainsMono_Regular',
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
+            padding: EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontFamily: 'JetBrainsMono_Regular',
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
+                SizedBox(height: 8),
+                Text(
+                  'Selecciona un grupo muscular',
+                  style: TextStyle(
+                    fontFamily: 'JetBrainsMono_Regular',
+                    fontSize: 13,
+                    color: Color(0x99FFFFFF),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
             ),
           ),
-          Divider(
-            color: const Color.fromARGB(255, 0, 4, 255),
-            thickness: 2,
-            indent: 20,
-            endIndent: 20,
-          ),
 
-          SizedBox(height: 15),
+          SizedBox(height: 24),
 
-          // ========== ZONAS CENTRADAS VERTICALMENTE ==========
-          Expanded( // ← Usa Expanded para ocupar el espacio restante
-            child: Center( // ← Center para centrar verticalmente
-              child: SingleChildScrollView( // ← ScrollView solo para las zonas
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 15),
-                  child: zonas.isEmpty
-                      ? Padding(
-                          padding: EdgeInsets.all(20),
-                          child: Text(
-                            'Músculos no encontrados',
-                            style: TextStyle(
-                              fontFamily: 'JetBrainsMono_Regular',
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.red,
-                            ),
-                          ),
-                        )
-                      : Column(
-                          children: zonas.map((zona) {
-                            return Padding(
-                              padding: EdgeInsets.only(bottom: 12),
-                              child: GestureDetector(
-                                onTap: () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    Routes.exerciseDetail,
-                                    arguments: ZonaMuscular(
-                                      idPartesC: zona.idPartesC ?? widget.idPartesC!,
-                                      idAreaM: zona.idAreaM,
-                                      nombre: zona.nombre,
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  height: 100,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    image: DecorationImage(
-                                      image: AssetImage(
-                                        'assets/workout_area/$folder/${zona.nombre.toLowerCase()}.jpg',
-                                      ),
-                                      fit: BoxFit.cover,
-                                    ),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: zonas.isEmpty
+                  ? Center(
+                      child: Text(
+                        'Músculos no encontrados',
+                        style: TextStyle(
+                          fontFamily: 'JetBrainsMono_Regular',
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
+                        ),
+                      ),
+                    )
+                  : SingleChildScrollView(
+                      child: Column(
+                        children: zonas.map((zona) {
+                          String imagePath =
+                              'assets/workout_area/$folder/${zona.nombre.toLowerCase().replaceAll(' ', '_')}.jpg';
+
+                          return Padding(
+                            padding: EdgeInsets.only(bottom: 16),
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  Routes.exerciseDetail,
+                                  arguments: ZonaMuscular(
+                                    idPartesC:
+                                        zona.idPartesC ?? widget.idPartesC!,
+                                    idAreaM: zona.idAreaM,
+                                    nombre: zona.nombre,
                                   ),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8),
-                                      gradient: LinearGradient(
-                                        begin: Alignment.centerLeft,
-                                        end: Alignment.centerRight,
-                                        colors: [
-                                          Colors.black.withValues(alpha: 0.6),
-                                          Colors.black.withValues(alpha: 0.3),
-                                        ],
-                                      ),
+                                );
+                              },
+                              child: Container(
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(24),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Color(0x262563eb),
+                                      blurRadius: 12,
+                                      offset: Offset(0, 6),
+                                      spreadRadius: -4,
                                     ),
-                                    child: Padding(
-                                      padding: EdgeInsets.symmetric(horizontal: 16),
-                                      child: Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(
-                                          zona.nombre,
-                                          style: TextStyle(
-                                            fontFamily: 'JetBrainsMono_Regular',
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                            letterSpacing: 0.8,
+                                    BoxShadow(
+                                      color: Color(0x66000000),
+                                      blurRadius: 10,
+                                      offset: Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(24),
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      Image.asset(
+                                        imagePath,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                Container(
+                                                  color: Colors.grey[850],
+                                                  child: Center(
+                                                    child: Icon(
+                                                      Icons.image_not_supported,
+                                                      color: Colors.grey[600],
+                                                      size: 48,
+                                                    ),
+                                                  ),
+                                                ),
+                                      ),
+                                      // ✅ CAPA NEGRA EXACTA DE WORKOUT AREA (diagonal, 0.8 → 0.9)
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: [
+                                              Colors.black.withValues(
+                                                alpha: 0.8,
+                                              ),
+                                              Colors.black.withValues(
+                                                alpha: 0.9,
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ),
-                                    ),
+                                      // Texto con rallita vertical y plateado
+                                      Padding(
+                                        padding: EdgeInsets.all(20),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                              width: 4,
+                                              height: 24,
+                                              decoration: BoxDecoration(
+                                                color: Color(0xFF2563eb),
+                                                borderRadius:
+                                                    BorderRadius.circular(2),
+                                              ),
+                                            ),
+                                            SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                zona.nombre.toUpperCase(),
+                                                style: TextStyle(
+                                                  fontFamily:
+                                                      'JetBrainsMono_Regular',
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0xFFc0c0c0),
+                                                  height: 1.1,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
-                            );
-                          }).toList(),
-                        ),
-                ),
-              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
             ),
           ),
 
-          SizedBox(height: 30),
+          SizedBox(height: 20),
         ],
       ),
     );

@@ -14,6 +14,7 @@ class RegisterController extends ChangeNotifier {
   // === ESTADOS ===
   int currentStep = 1;
   String? generatedOtp;
+  DateTime? otpGeneratedAt; // ← NUEVO: para expiración real
   bool isLoading = false;
   int resendTimer = 0;
 
@@ -38,7 +39,7 @@ class RegisterController extends ChangeNotifier {
   final String _gmailAppPassword = 'jwbh fotp ejjv lazk';
 
   // === CONTROL DE TIMER ===
-  bool _isDisposed = false; // ← AÑADIDO
+  bool _isDisposed = false;
 
   RegisterController() {
     passwordController.addListener(_updatePasswordValidation);
@@ -55,11 +56,17 @@ class RegisterController extends ChangeNotifier {
   }
 
   bool get isPasswordValid =>
-      hasMinLength && hasUppercase && hasNumber && hasSpecialChar && notOnlyNumbers;
+      hasMinLength &&
+      hasUppercase &&
+      hasNumber &&
+      hasSpecialChar &&
+      notOnlyNumbers;
 
   // === ENVIAR OTP ===
   Future<String?> sendOtp() async {
     final email = emailController.text.trim();
+
+    // Validar formato
     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
       return 'Ingresa un correo válido';
     }
@@ -68,14 +75,31 @@ class RegisterController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      generatedOtp = (100000 + DateTime.now().millisecondsSinceEpoch % 900000).toString();
+      // COMPROBAR SI EL CORREO YA EXISTE
+      final userExists = await _authService.userExists(email);
+      if (userExists) {
+        isLoading = false;
+        notifyListeners();
+        return 'Este correo ya está registrado';
+      }
 
+      // Invalidar OTP anterior (por si se reenvía)
+      generatedOtp = null;
+      otpGeneratedAt = null;
+
+      // Generar nuevo OTP
+      generatedOtp = (100000 + DateTime.now().millisecondsSinceEpoch % 900000)
+          .toString();
+      otpGeneratedAt = DateTime.now(); // ← GUARDAR MOMENTO DE GENERACIÓN
+
+      // Enviar por Gmail
       final smtpServer = gmail(_gmailEmail, _gmailAppPassword);
       final message = Message()
         ..from = Address(_gmailEmail, 'Kronos App')
         ..recipients.add(email)
         ..subject = 'Tu código de verificación - Kronos'
-        ..html = '''
+        ..html =
+            '''
           <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
             <h2 style="color: #003D82;">¡Hola!</h2>
             <p>Tu código de verificación es:</p>
@@ -90,7 +114,7 @@ class RegisterController extends ChangeNotifier {
 
       currentStep = 2;
       resendTimer = 60;
-      _startResendTimer(); // ← Timer seguro
+      _startResendTimer();
       return null;
     } catch (e) {
       return 'Error al enviar: $e';
@@ -102,7 +126,7 @@ class RegisterController extends ChangeNotifier {
 
   void _startResendTimer() {
     Future.doWhile(() async {
-      if (_isDisposed) return false; // ← DETENER SI SE CIERRA LA PANTALLA
+      if (_isDisposed) return false;
       await Future.delayed(const Duration(seconds: 1));
       if (resendTimer > 0) {
         resendTimer--;
@@ -113,11 +137,26 @@ class RegisterController extends ChangeNotifier {
     });
   }
 
-  // === VERIFICAR OTP ===
+  // === VERIFICAR OTP (CON EXPIRACIÓN REAL) ===
   String? verifyOtp() {
     final code = otpController.text.trim();
+
     if (code.length != 6) return 'Ingresa un código de 6 dígitos';
     if (code != generatedOtp) return 'Código incorrecto';
+
+    // VERIFICAR EXPIRACIÓN
+    if (otpGeneratedAt == null) return 'Código no generado';
+
+    final now = DateTime.now();
+    final difference = now.difference(otpGeneratedAt!);
+
+    if (difference.inMinutes >= 5) {
+      generatedOtp = null;
+      otpGeneratedAt = null;
+      notifyListeners();
+      return 'Código expirado. Solicita uno nuevo';
+    }
+
     currentStep = 3;
     notifyListeners();
     return null;
@@ -155,7 +194,10 @@ class RegisterController extends ChangeNotifier {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('¡Cuenta creada!'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('¡Cuenta creada!'),
+            backgroundColor: Colors.green,
+          ),
         );
         Navigator.pushReplacementNamed(context, '/login');
       }
@@ -186,7 +228,7 @@ class RegisterController extends ChangeNotifier {
 
   @override
   void dispose() {
-    _isDisposed = true; // ← DETENER TIMER
+    _isDisposed = true;
     emailController.dispose();
     fullNameController.dispose();
     passwordController.dispose();

@@ -15,6 +15,7 @@ class ForgotPasswordController extends ChangeNotifier {
 
   // === ESTADO ===
   String? generatedOtp;
+  DateTime? otpGeneratedAt; // ← NUEVO: para expiración real
   bool isLoading = false;
   int resendTimer = 0;
 
@@ -35,7 +36,7 @@ class ForgotPasswordController extends ChangeNotifier {
   final AuthService _authService = AuthService();
 
   // === CONTROL DE TIMER ===
-  bool _isDisposed = false; // ← AÑADIDO
+  bool _isDisposed = false;
 
   ForgotPasswordController() {
     newPasswordController.addListener(_updateValidation);
@@ -52,12 +53,18 @@ class ForgotPasswordController extends ChangeNotifier {
   }
 
   bool get isPasswordValid =>
-      hasMinLength && hasUppercase && hasNumber && hasSpecialChar && notOnlyNumbers;
+      hasMinLength &&
+      hasUppercase &&
+      hasNumber &&
+      hasSpecialChar &&
+      notOnlyNumbers;
 
   // === PASO 1: ENVIAR CÓDIGO ===
   Future<String?> sendCode() async {
     final email = emailController.text.trim();
-    if (email.isEmpty || !email.contains('@')) {
+
+    // Validar formato de correo
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
       return 'Ingresa un correo válido';
     }
 
@@ -65,33 +72,49 @@ class ForgotPasswordController extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // COMPROBAR SI EL CORREO SÍ EXISTE
       final userExists = await _authService.userExists(email);
       if (!userExists) {
+        isLoading = false;
+        notifyListeners();
         return 'Este correo no está registrado';
       }
 
-      generatedOtp = (100000 + DateTime.now().millisecondsSinceEpoch % 900000).toString();
+      // Invalidar OTP anterior (por si se reenvía)
+      generatedOtp = null;
+      otpGeneratedAt = null;
 
+      // Generar nuevo OTP
+      generatedOtp = (100000 + DateTime.now().millisecondsSinceEpoch % 900000)
+          .toString();
+      otpGeneratedAt = DateTime.now(); // ← GUARDAR MOMENTO DE GENERACIÓN
+
+      // Enviar por Gmail
       final smtpServer = gmail(_gmailEmail, _gmailAppPassword);
       final message = Message()
         ..from = Address(_gmailEmail, 'Kronos')
         ..recipients.add(email)
         ..subject = 'Código para cambiar contraseña'
-        ..html = '''
-          <h2>¡Hola!</h2>
-          <p>Tu código para cambiar la contraseña es:</p>
-          <h1 style="color: #FF8C42; font-size: 32px; letter-spacing: 8px;"><b>$generatedOtp</b></h1>
-          <p>Expira en 5 minutos.</p>
+        ..html =
+            '''
+          <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
+            <h2 style="color: #003D82;">¡Hola!</h2>
+            <p>Tu código para cambiar la contraseña es:</p>
+            <h1 style="color: #FF8C42; font-size: 36px; letter-spacing: 10px; font-weight: bold;">
+              $generatedOtp
+            </h1>
+            <p style="color: #666;">Expira en 5 minutos.</p>
+          </div>
         ''';
 
       await send(message, smtpServer);
 
       currentStep = 2;
       resendTimer = 60;
-      _startTimer(); // ← Timer seguro
+      _startTimer();
       return null;
     } catch (e) {
-      return 'Error: $e';
+      return 'Error al enviar: $e';
     } finally {
       isLoading = false;
       notifyListeners();
@@ -100,7 +123,7 @@ class ForgotPasswordController extends ChangeNotifier {
 
   void _startTimer() {
     Future.doWhile(() async {
-      if (_isDisposed) return false; // ← DETENER SI SE CIERRA LA PANTALLA
+      if (_isDisposed) return false;
       await Future.delayed(const Duration(seconds: 1));
       if (resendTimer > 0) {
         resendTimer--;
@@ -111,14 +134,30 @@ class ForgotPasswordController extends ChangeNotifier {
     });
   }
 
-  // === PASO 2: VERIFICAR CÓDIGO ===
+  // === PASO 2: VERIFICAR CÓDIGO (CON EXPIRACIÓN REAL) ===
   String? verifyCode() {
-    if (otpController.text.length != 6) {
-      return 'Ingresa 6 dígitos';
+    final code = otpController.text.trim();
+
+    if (code.length != 6) {
+      return 'Ingresa un código de 6 dígitos';
     }
-    if (otpController.text != generatedOtp) {
+    if (code != generatedOtp) {
       return 'Código incorrecto';
     }
+
+    // VERIFICAR EXPIRACIÓN
+    if (otpGeneratedAt == null) return 'Código no generado';
+
+    final now = DateTime.now();
+    final difference = now.difference(otpGeneratedAt!);
+
+    if (difference.inMinutes >= 5) {
+      generatedOtp = null;
+      otpGeneratedAt = null;
+      notifyListeners();
+      return 'Código expirado. Solicita uno nuevo';
+    }
+
     currentStep = 3;
     notifyListeners();
     return null;
@@ -133,7 +172,7 @@ class ForgotPasswordController extends ChangeNotifier {
       return 'Contraseña débil';
     }
     if (newPass != confirm) {
-      return 'No coinciden';
+      return 'Las contraseñas no coinciden';
     }
 
     isLoading = true;
@@ -146,7 +185,7 @@ class ForgotPasswordController extends ChangeNotifier {
       }
       return null;
     } catch (e) {
-      return 'Error al cambiar';
+      return 'Error al cambiar la contraseña';
     } finally {
       isLoading = false;
       notifyListeners();
@@ -166,7 +205,7 @@ class ForgotPasswordController extends ChangeNotifier {
 
   @override
   void dispose() {
-    _isDisposed = true; // ← DETENER TIMER
+    _isDisposed = true;
     emailController.dispose();
     otpController.dispose();
     newPasswordController.dispose();
