@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import '../db/database_helper.dart';
 import '../dialogs/success_notification.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// Usamos un prefijo para 'rive' para evitar conflictos con LinearGradient
 import 'package:rive/rive.dart' as Rive;
 import '../rive_cache.dart';
 
@@ -58,16 +57,6 @@ class AgregarPeso {
           return;
         }
 
-        // final updateData = {
-        //   'IdEjercicio': variant['idEjercicio'],
-        //   'IdPartesC': variant['idPartesC'],
-        //   'IdAreaM': variant['idAreaM'],
-        //   'Nombre': variant['name'],
-        //   'Descripcion': variant['description'],
-        //   'Peso': peso,
-        // };
-        //await dbHelper.updateEjercicio(updateData);
-
         var resultado = await dbHelper.registrarPesoYDetectarRecord(
           idUsuario: idUsuario,
           idEjercicio: variant['idEjercicio'],
@@ -86,9 +75,9 @@ class AgregarPeso {
       }
     }
 
-    // 🔥 GUARDAR TIMESTAMP Y ACTUALIZAR RACHA
-    await _guardarUltimoRegistro();
-    await _actualizarRacha();
+    // GUARDAR TIMESTAMP Y ACTUALIZAR RACHA (CON ID DE USUARIO)
+    await _guardarUltimoRegistro(idUsuario);
+    await _actualizarRacha(idUsuario);
 
     if (nuevosRecords.isNotEmpty) {
       _mostrarDialogoRecord(context, nuevosRecords, completedExercises);
@@ -110,37 +99,43 @@ class AgregarPeso {
     }
   }
 
-  // 🔥 Guardar timestamp del último registro de peso
-  static Future<void> _guardarUltimoRegistro() async {
+  // Guardar timestamp del último registro de peso (POR USUARIO)
+  static Future<void> _guardarUltimoRegistro(int idUsuario) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt(
-        'ultimo_registro_peso',
+        'ultimo_registro_peso_user_$idUsuario',
         DateTime.now().millisecondsSinceEpoch,
       );
-      print('✅ Timestamp guardado: ${DateTime.now()}');
+      print('Timestamp guardado para usuario $idUsuario: ${DateTime.now()}');
     } catch (e) {
-      print('❌ Error guardando timestamp: $e');
+      print('Error guardando timestamp: $e');
     }
   }
 
-  // 🔥 SISTEMA DE RACHAS
-  static Future<void> _actualizarRacha() async {
+  // SISTEMA DE RACHAS (POR USUARIO)
+  static Future<void> _actualizarRacha(int idUsuario) async {
     try {
       final prefs = await SharedPreferences.getInstance();
+
+      // CLAVES CON ID DE USUARIO
+      final keyRacha = 'racha_actual_user_$idUsuario';
+      final keyUltimaFecha = 'ultima_fecha_registro_user_$idUsuario';
+      final keyFechasRegistro = 'fechas_con_registro_user_$idUsuario';
+      final keyFechasPerdida = 'fechas_racha_perdida_user_$idUsuario';
 
       // Obtener fecha de hoy (sin hora, solo día)
       final hoy = DateTime.now();
       final hoyString =
           '${hoy.year}-${hoy.month.toString().padLeft(2, '0')}-${hoy.day.toString().padLeft(2, '0')}';
 
-      // Obtener datos de racha
-      int rachaActual = prefs.getInt('racha_actual') ?? 0;
-      String? ultimaFechaRegistroStr = prefs.getString('ultima_fecha_registro');
+      // Obtener datos de racha del usuario actual
+      int rachaActual = prefs.getInt(keyRacha) ?? 0;
+      String? ultimaFechaRegistroStr = prefs.getString(keyUltimaFecha);
       List<String> fechasConRegistro =
-          prefs.getStringList('fechas_con_registro') ?? [];
+          prefs.getStringList(keyFechasRegistro) ?? [];
 
-      // ✅ PRIMERO: Verificar si se perdió la racha ANTES de verificar si ya registró hoy
+      // PRIMERO: Verificar si se perdió la racha ANTES de verificar si ya registró hoy
       if (ultimaFechaRegistroStr != null &&
           !fechasConRegistro.contains(hoyString)) {
         final ultimaFechaRegistro = DateTime.parse(ultimaFechaRegistroStr);
@@ -158,12 +153,11 @@ class AgregarPeso {
 
         // Si pasaron 3 o más días → Se pierde la racha
         if (diferenciaDias >= 3) {
-          // Se perdió la racha
-          print('❌ Racha perdida! Diferencia: $diferenciaDias días');
+          print('Racha perdida! Diferencia: $diferenciaDias días');
 
           // Guardar fecha donde se perdió la racha (día 3)
           List<String> fechasRachaPerdida =
-              prefs.getStringList('fechas_racha_perdida') ?? [];
+              prefs.getStringList(keyFechasPerdida) ?? [];
 
           // Calcular el día exacto donde se perdió (3 días después del último registro)
           final fechaPerdida = ultimaFechaSoloFecha.add(
@@ -173,54 +167,48 @@ class AgregarPeso {
               '${fechaPerdida.year}-${fechaPerdida.month.toString().padLeft(2, '0')}-${fechaPerdida.day.toString().padLeft(2, '0')}';
 
           if (!fechasRachaPerdida.contains(fechaPerdidaString)) {
-            // Corregido: fezasRachaPerdida -> fechasRachaPerdida
             fechasRachaPerdida.add(fechaPerdidaString);
-            await prefs.setStringList(
-              'fechas_racha_perdida',
-              fechasRachaPerdida,
-            );
+            await prefs.setStringList(keyFechasPerdida, fechasRachaPerdida);
           }
 
-          // ✅ Reiniciar racha a 0
+          // Reiniciar racha a 0
           rachaActual = 0;
-          await prefs.setInt('racha_actual', 0);
-          print('🔄 Racha reiniciada a 0 (día perdido: $fechaPerdidaString)');
+          await prefs.setInt(keyRacha, 0);
+          print('Racha reiniciada a 0 (día perdido: $fechaPerdidaString)');
         }
       }
 
-      // ✅ SEGUNDO: Si ya registró hoy, no hacer nada más
+      // SEGUNDO: Si ya registró hoy, no hacer nada más
       if (fechasConRegistro.contains(hoyString)) {
-        print('✅ Ya se registró peso hoy, racha mantiene: $rachaActual');
+        print('Ya se registró peso hoy, racha mantiene: $rachaActual');
         return;
       }
 
-      // ✅ TERCERO: Incrementar racha (nuevo día registrado)
+      // TERCERO: Incrementar racha (nuevo día registrado)
       rachaActual++;
 
       // Agregar fecha de hoy a las fechas con registro
       fechasConRegistro.add(hoyString);
 
       // Guardar datos actualizados
-      await prefs.setInt('racha_actual', rachaActual);
-      await prefs.setString('ultima_fecha_registro', hoyString);
-      await prefs.setStringList('fechas_con_registro', fechasConRegistro);
+      await prefs.setInt(keyRacha, rachaActual);
+      await prefs.setString(keyUltimaFecha, hoyString);
+      await prefs.setStringList(keyFechasRegistro, fechasConRegistro);
 
-      print('✅ Racha actualizada: $rachaActual días');
-      print('✅ Fecha registrada: $hoyString');
+      print('Racha actualizada para usuario $idUsuario: $rachaActual días');
+      print('Fecha registrada: $hoyString');
     } catch (e) {
-      print('❌ Error actualizando racha: $e');
+      print('Error actualizando racha: $e');
     }
   }
 
-  // 🎨 DIALOGO MINIMALISTA DE RÉCORD
+  // DIALOGO MINIMALISTA DE RÉCORD
   static void _mostrarDialogoRecord(
     BuildContext context,
     List<String> records,
     List<String> allCompleted,
   ) {
-    // Cambiamos el tipo de 'artboard' para usar el de Rive con prefijo
     Rive.Artboard? artboard;
-    // Cambiamos el tipo de 'controller' para usar el de Rive con prefijo
     Rive.RiveAnimationController? controller;
     bool loadingFallback = false;
 
@@ -228,7 +216,6 @@ class AgregarPeso {
       final cached = RiveCache.artboardPopup;
       if (cached != null) {
         artboard = cached.instance();
-        // Usamos SimpleAnimation de Rive con prefijo
         controller = Rive.SimpleAnimation('PetCel');
         artboard.addController(controller);
       }
@@ -242,9 +229,8 @@ class AgregarPeso {
       try {
         loadingFallback = true;
         final data = await rootBundle.load('assets/mascota/PetanimU.riv');
-        final file = Rive.RiveFile.import(data); // Usamos RiveFile con prefijo
+        final file = Rive.RiveFile.import(data);
         final ab = file.mainArtboard.instance();
-        // Usamos SimpleAnimation de Rive con prefijo
         final c = Rive.SimpleAnimation('PetCel');
         ab.addController(c);
         artboard = ab;
@@ -273,7 +259,6 @@ class AgregarPeso {
             insetPadding: const EdgeInsets.symmetric(horizontal: 30),
             child: Container(
               decoration: BoxDecoration(
-                // Usamos LinearGradient de Flutter (no necesita prefijo porque no hay conflicto ahora)
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
@@ -292,18 +277,17 @@ class AgregarPeso {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Indicador: Texto NUEVO RECORD con estilo plateado brillante metálico
                   ShaderMask(
                     shaderCallback: (bounds) {
                       return LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          Color(0xFF8d8d8d), // Gris medio
-                          Color(0xFFffffff), // Blanco brillante
-                          Color(0xFFc0c0c0), // Plateado
-                          Color(0xFF6b6b6b), // Gris oscuro
-                          Color(0xFFffffff), // Blanco brillante
+                          Color(0xFF8d8d8d),
+                          Color(0xFFffffff),
+                          Color(0xFFc0c0c0),
+                          Color(0xFF6b6b6b),
+                          Color(0xFFffffff),
                         ],
                         stops: [0.0, 0.25, 0.5, 0.75, 1.0],
                       ).createShader(bounds);
@@ -311,22 +295,20 @@ class AgregarPeso {
                     child: Text(
                       '¡Nuevo récord!',
                       style: TextStyle(
-                        fontFamily:
-                            'JetBrainsMono_Regular', // Mantenemos la fuente
-                        fontSize:
-                            22, // Ajustamos el tamaño, quizás un poco más grande
+                        fontFamily: 'JetBrainsMono_Regular',
+                        fontSize: 22,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white, // Color base para el ShaderMask
+                        color: Colors.white,
                         letterSpacing: 0.3,
                         shadows: [
                           Shadow(
                             color: Colors.black.withOpacity(0.8),
-                            offset: Offset(0, 4), // Sombra principal
+                            offset: Offset(0, 4),
                             blurRadius: 8,
                           ),
                           Shadow(
                             color: Color(0xFFc0c0c0).withOpacity(0.5),
-                            offset: Offset(0, 0), // Resplandor metálico
+                            offset: Offset(0, 0),
                             blurRadius: 20,
                           ),
                         ],
@@ -336,7 +318,6 @@ class AgregarPeso {
 
                   const SizedBox(height: 18),
 
-                  // Subtítulo
                   const Text(
                     'Superaste tu marca en:',
                     style: TextStyle(
@@ -347,7 +328,6 @@ class AgregarPeso {
                   ),
                   const SizedBox(height: 14),
 
-                  // Lista de récords
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -368,7 +348,6 @@ class AgregarPeso {
                                 width: 3,
                                 height: 12,
                                 decoration: BoxDecoration(
-                                  // Usamos LinearGradient de Flutter aquí también
                                   gradient: LinearGradient(
                                     begin: Alignment.topCenter,
                                     end: Alignment.bottomCenter,
@@ -401,7 +380,6 @@ class AgregarPeso {
 
                   const SizedBox(height: 14),
 
-                  // Animación Rive
                   if (artboard != null)
                     RepaintBoundary(
                       child: SizedBox(
@@ -412,7 +390,7 @@ class AgregarPeso {
                           child: Rive.Rive(
                             artboard: artboard!,
                             fit: BoxFit.contain,
-                          ), // Usamos Rive con prefijo
+                          ),
                         ),
                       ),
                     )
@@ -428,15 +406,13 @@ class AgregarPeso {
 
                   const SizedBox(height: 16),
 
-                  // Botón cerrar
                   SizedBox(
                     width: double.infinity,
                     height: 42,
                     child: ElevatedButton(
                       onPressed: () {
                         try {
-                          controller?.isActive =
-                              false; // El controller ahora es de Rive, pero la propiedad isActive es la misma
+                          controller?.isActive = false;
                         } catch (_) {}
                         Navigator.pop(context);
                       },

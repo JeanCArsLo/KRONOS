@@ -19,7 +19,6 @@ class CalendarScreenState extends State<CalendarScreen> {
   late DateTime _selectedDay;
   late DateTime _focusedDay;
 
-  // DOS ARTBOARDS: uno para cada animación (precargados)
   Artboard? _artboardPetidle;
   Artboard? _artboardPETSad;
 
@@ -33,8 +32,8 @@ class CalendarScreenState extends State<CalendarScreen> {
   int _rachaActual = 0;
   List<String> _fechasConRegistro = [];
   List<String> _fechasRachaPerdida = [];
+  int? _idUsuarioActual; // NUEVO: ID del usuario actual
 
-  // 🔹 Tamaño y posición de la mascota
   double _mascotaWidth = 250;
   double _mascotaHeight = 250;
   Offset _mascotaOffset = const Offset(145, 10);
@@ -49,30 +48,51 @@ class CalendarScreenState extends State<CalendarScreen> {
     // Cargar AMBOS artboards al inicio
     _cargarAmbosArtboards();
 
-    // Cargar datos de racha
-    _cargarDatosRacha();
+    // Cargar ID de usuario y luego datos de racha
+    _inicializarUsuarioYDatos();
 
     // Iniciar verificación periódica
     _iniciarVerificacionTiempo();
   }
 
-  // CARGAR DATOS DE RACHA
+  // NUEVO: Inicializar usuario y cargar sus datos
+  Future<void> _inicializarUsuarioYDatos() async {
+    final prefs = await SharedPreferences.getInstance();
+    _idUsuarioActual = prefs.getInt('current_user_id');
+
+    if (_idUsuarioActual == null) {
+      debugPrint('No hay usuario logueado');
+      return;
+    }
+
+    debugPrint('Usuario actual: $_idUsuarioActual');
+    await _cargarDatosRacha();
+  }
+
+  // CARGAR DATOS DE RACHA (POR USUARIO)
   Future<void> _cargarDatosRacha() async {
     try {
+      if (_idUsuarioActual == null) return;
+
       final prefs = await SharedPreferences.getInstance();
 
+      // CLAVES CON ID DE USUARIO
+      final keyRacha = 'racha_actual_user_$_idUsuarioActual';
+      final keyFechasRegistro = 'fechas_con_registro_user_$_idUsuarioActual';
+      final keyFechasPerdida = 'fechas_racha_perdida_user_$_idUsuarioActual';
+
       setState(() {
-        _rachaActual = prefs.getInt('racha_actual') ?? 0;
-        _fechasConRegistro = prefs.getStringList('fechas_con_registro') ?? [];
-        _fechasRachaPerdida = prefs.getStringList('fechas_racha_perdida') ?? [];
+        _rachaActual = prefs.getInt(keyRacha) ?? 0;
+        _fechasConRegistro = prefs.getStringList(keyFechasRegistro) ?? [];
+        _fechasRachaPerdida = prefs.getStringList(keyFechasPerdida) ?? [];
       });
 
       // Verificar si hay racha perdida no marcada
       await _verificarYMarcarRachaPerdida();
 
-      debugPrint(' Racha actual: $_rachaActual');
-      debugPrint(' Fechas con registro: ${_fechasConRegistro.length}');
-      debugPrint(' Fechas racha perdida: ${_fechasRachaPerdida.length}');
+      debugPrint('Racha actual (Usuario $_idUsuarioActual): $_rachaActual');
+      debugPrint('Fechas con registro: ${_fechasConRegistro.length}');
+      debugPrint('Fechas racha perdida: ${_fechasRachaPerdida.length}');
     } catch (e) {
       debugPrint('Error cargando datos de racha: $e');
     }
@@ -81,8 +101,14 @@ class CalendarScreenState extends State<CalendarScreen> {
   // VERIFICAR SI HAY RACHA PERDIDA NO MARCADA
   Future<void> _verificarYMarcarRachaPerdida() async {
     try {
+      if (_idUsuarioActual == null) return;
+
       final prefs = await SharedPreferences.getInstance();
-      final ultimoRegistro = prefs.getInt('ultimo_registro_peso');
+      final keyUltimoRegistro = 'ultimo_registro_peso_user_$_idUsuarioActual';
+      final keyRacha = 'racha_actual_user_$_idUsuarioActual';
+      final keyFechasPerdida = 'fechas_racha_perdida_user_$_idUsuarioActual';
+
+      final ultimoRegistro = prefs.getInt(keyUltimoRegistro);
 
       if (ultimoRegistro == null) return;
 
@@ -111,20 +137,17 @@ class CalendarScreenState extends State<CalendarScreen> {
 
         if (!_fechasRachaPerdida.contains(fechaPerdidaString)) {
           _fechasRachaPerdida.add(fechaPerdidaString);
-          await prefs.setStringList(
-            'fechas_racha_perdida',
-            _fechasRachaPerdida,
-          );
+          await prefs.setStringList(keyFechasPerdida, _fechasRachaPerdida);
 
           // Reiniciar racha
-          await prefs.setInt('racha_actual', 0);
+          await prefs.setInt(keyRacha, 0);
 
           setState(() {
             _rachaActual = 0;
           });
 
           debugPrint(
-            ' Racha perdida marcada en: $fechaPerdidaString (pasaron $diferenciaDias días)',
+            '❌ Racha perdida marcada en: $fechaPerdidaString (pasaron $diferenciaDias días)',
           );
         }
       }
@@ -147,7 +170,7 @@ class CalendarScreenState extends State<CalendarScreen> {
         _controllerPETSad = SimpleAnimation('PETSad', autoplay: false);
         _artboardPETSad!.addController(_controllerPETSad!);
 
-        debugPrint(' Ambos artboards precargados desde caché');
+        debugPrint('Ambos artboards precargados desde caché');
       } else {
         final data = await rootBundle.load('assets/mascota/PetanimU.riv');
         final file = RiveFile.import(data);
@@ -160,7 +183,7 @@ class CalendarScreenState extends State<CalendarScreen> {
         _controllerPETSad = SimpleAnimation('PETSad', autoplay: false);
         _artboardPETSad!.addController(_controllerPETSad!);
 
-        debugPrint(' Ambos artboards precargados desde assets');
+        debugPrint('Ambos artboards precargados desde assets');
       }
 
       // Activar solo Petidle al inicio
@@ -168,7 +191,7 @@ class CalendarScreenState extends State<CalendarScreen> {
 
       setState(() {});
     } catch (e) {
-      debugPrint(' Error cargando artboards: $e');
+      debugPrint('Error cargando artboards: $e');
     }
   }
 
@@ -182,8 +205,11 @@ class CalendarScreenState extends State<CalendarScreen> {
 
   Future<void> _verificarTiempoTranscurrido() async {
     try {
+      if (_idUsuarioActual == null) return;
+
       final prefs = await SharedPreferences.getInstance();
-      final ultimoRegistro = prefs.getInt('ultimo_registro_peso');
+      final keyUltimoRegistro = 'ultimo_registro_peso_user_$_idUsuarioActual';
+      final ultimoRegistro = prefs.getInt(keyUltimoRegistro);
 
       if (ultimoRegistro == null) {
         _cambiarAnimacion('PETSad');
@@ -207,13 +233,10 @@ class CalendarScreenState extends State<CalendarScreen> {
           .inDays;
 
       // Si pasaron 3 o más días → Mascota triste (racha perdida)
-      // Días 0-2 sin registro → Mascota feliz (racha activa)
       if (diferenciaDias >= 3) {
         _cambiarAnimacion('PETSad');
-        debugPrint('Mascota triste: $diferenciaDias días sin registro');
       } else {
         _cambiarAnimacion('Petidle');
-        debugPrint('Mascota feliz: $diferenciaDias días sin registro');
       }
     } catch (e) {
       debugPrint('Error verificando tiempo: $e');
@@ -222,8 +245,6 @@ class CalendarScreenState extends State<CalendarScreen> {
 
   void _cambiarAnimacion(String nuevaAnimacion) {
     if (_animacionActual == nuevaAnimacion) return;
-
-    debugPrint('Cambiando a: $nuevaAnimacion');
 
     _controllerPetidle?.isActive = false;
     _controllerPETSad?.isActive = false;
@@ -243,8 +264,6 @@ class CalendarScreenState extends State<CalendarScreen> {
     setState(() {
       _animacionActual = nuevaAnimacion;
     });
-
-    debugPrint('Animación $nuevaAnimacion activada y reiniciada');
   }
 
   @override
@@ -255,14 +274,12 @@ class CalendarScreenState extends State<CalendarScreen> {
     super.dispose();
   }
 
-  // VERIFICAR SI UN DÍA TIENE REGISTRO
   bool _tieneRegistro(DateTime dia) {
     final diaString =
         '${dia.year}-${dia.month.toString().padLeft(2, '0')}-${dia.day.toString().padLeft(2, '0')}';
     return _fechasConRegistro.contains(diaString);
   }
 
-  // VERIFICAR SI UN DÍA PERDIÓ LA RACHA
   bool _perdioRacha(DateTime dia) {
     final diaString =
         '${dia.year}-${dia.month.toString().padLeft(2, '0')}-${dia.day.toString().padLeft(2, '0')}';
@@ -325,7 +342,7 @@ class CalendarScreenState extends State<CalendarScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ================= ENCABEZADO ESTILO ENTRENADORES (sin rayas) =================
+                // ================= ENCABEZADO ESTILO ENTRENADORES =================
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
@@ -334,7 +351,7 @@ class CalendarScreenState extends State<CalendarScreen> {
                         width: 6,
                         height: 32,
                         decoration: BoxDecoration(
-                          color: Color(0xFF2563eb), // Azul brillante
+                          color: Color(0xFF2563eb),
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -346,19 +363,16 @@ class CalendarScreenState extends State<CalendarScreen> {
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1.2,
-                          color: Colors.white, // Texto blanco
+                          color: Colors.white,
                         ),
                       ),
                     ],
                   ),
                 ),
 
-                // QUITAMOS LAS RAYAS: const Divider(...),
                 const SizedBox(height: 15),
 
                 // ================= ENCABEZADO =================
-                // Reemplazo del recuadro de fecha y racha
-                // Busca la sección "ENCABEZADO" y reemplázala con este código:
                 Transform.translate(
                   offset: const Offset(0, -10),
                   child: Padding(
@@ -390,7 +404,6 @@ class CalendarScreenState extends State<CalendarScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // ========== FECHA ==========
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -431,13 +444,9 @@ class CalendarScreenState extends State<CalendarScreen> {
                               ),
 
                               const SizedBox(height: 16),
-
-                              // ========== RAYA DIVISORIA HORIZONTAL ==========
                               Container(height: 1.5, color: Color(0xFF2563eb)),
-
                               const SizedBox(height: 16),
 
-                              // ========== RACHA ==========
                               Row(
                                 children: [
                                   Column(
@@ -466,13 +475,11 @@ class CalendarScreenState extends State<CalendarScreen> {
                                     ],
                                   ),
                                   const SizedBox(width: 12),
-                                  // ========== FUEGO REALISTA MINIMALISTA ==========
                                   SizedBox(
                                     width: 36,
                                     height: 36,
                                     child: Stack(
                                       children: [
-                                        // Capa base (naranja oscuro)
                                         Positioned(
                                           bottom: 0,
                                           left: 8,
@@ -482,7 +489,6 @@ class CalendarScreenState extends State<CalendarScreen> {
                                             size: 36,
                                           ),
                                         ),
-                                        // Capa intermedia (naranja brillante)
                                         Positioned(
                                           bottom: 2,
                                           left: 8,
@@ -492,7 +498,6 @@ class CalendarScreenState extends State<CalendarScreen> {
                                             size: 30,
                                           ),
                                         ),
-                                        // Capa superior (amarillo/blanco centro)
                                         Positioned(
                                           bottom: 6,
                                           left: 12,
@@ -516,7 +521,7 @@ class CalendarScreenState extends State<CalendarScreen> {
                 ),
                 const SizedBox(height: 10),
 
-                // ================= CALENDARIO CON MARCADORES =================
+                // ================= CALENDARIO =================
                 Padding(
                   padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
                   child: Transform.translate(
@@ -551,11 +556,9 @@ class CalendarScreenState extends State<CalendarScreen> {
                             _focusedDay = focusedDay;
                           },
 
-                          // MARCADORES PERSONALIZADOS
                           calendarBuilders: CalendarBuilders(
                             defaultBuilder: (context, day, focusedDay) {
                               if (_perdioRacha(day)) {
-                                // Día donde se perdió la racha - X roja
                                 return Container(
                                   margin: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
@@ -585,7 +588,6 @@ class CalendarScreenState extends State<CalendarScreen> {
                                   ),
                                 );
                               } else if (_tieneRegistro(day)) {
-                                // Día con registro - círculo naranja
                                 return Container(
                                   margin: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
