@@ -58,15 +58,15 @@ class AgregarPeso {
           return;
         }
 
-        final updateData = {
-          'IdEjercicio': variant['idEjercicio'],
-          'IdPartesC': variant['idPartesC'],
-          'IdAreaM': variant['idAreaM'],
-          'Nombre': variant['name'],
-          'Descripcion': variant['description'],
-          'Peso': peso,
-        };
-        await dbHelper.updateEjercicio(updateData);
+        // final updateData = {
+        //   'IdEjercicio': variant['idEjercicio'],
+        //   'IdPartesC': variant['idPartesC'],
+        //   'IdAreaM': variant['idAreaM'],
+        //   'Nombre': variant['name'],
+        //   'Descripcion': variant['description'],
+        //   'Peso': peso,
+        // };
+        //await dbHelper.updateEjercicio(updateData);
 
         var resultado = await dbHelper.registrarPesoYDetectarRecord(
           idUsuario: idUsuario,

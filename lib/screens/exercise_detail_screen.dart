@@ -4,6 +4,7 @@ import '../db/database_helper.dart';
 import 'dart:async';
 import '../widgets/add_weight.dart';
 import 'package:diacritic/diacritic.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ExerciseDetailScreen extends StatefulWidget {
   final int idPartesC;
@@ -106,28 +107,50 @@ class ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     _loadData();
   }
 
-  Future<void> _loadData() async {
-    final zona = await _dbHelper.getZonaMuscularById(widget.idAreaM);
-    if (zona != null) {
-      setState(() {
-        zonaNombre = zona['Nombre'];
-      });
+  // Agregar este método en ExerciseDetailScreenState
 
-      final staticInfo =
-          staticData[zonaNombre] ??
-          {
-            'description': 'Descripción no disponible',
-            'advice': 'Consejo no disponible',
-          };
+Future<void> _loadData() async {
+  final zona = await _dbHelper.getZonaMuscularById(widget.idAreaM);
+  if (zona != null) {
+    setState(() {
+      zonaNombre = zona['Nombre'];
+    });
 
-      final ejercicios = await _dbHelper.getEjerciciosByZona(widget.idAreaM);
+    final staticInfo =
+        staticData[zonaNombre] ??
+        {
+          'description': 'Descripción no disponible',
+          'advice': 'Consejo no disponible',
+        };
 
-      final variants = ejercicios.map((ejercicio) {
+    final ejercicios = await _dbHelper.getEjerciciosByZona(widget.idAreaM);
+
+    // 🔥 OBTENER ID DEL USUARIO ACTUAL
+    final prefs = await SharedPreferences.getInstance();
+    final idUsuario = prefs.getInt('current_user_id');
+
+    final variants = await Future.wait(
+      ejercicios.map((ejercicio) async {
         final ejercicioNombreLower = removeDiacritics(
           ejercicio['Nombre'],
         ).toLowerCase().replaceAll(' ', '_');
         final parteFolder = widget.idPartesC == 1 ? 'superior' : 'inferior';
         final zonaFolder = removeDiacritics(zonaNombre).toLowerCase();
+        
+        // 🔥 CARGAR PESO DESDE RecordPersonal EN VEZ DE Ejercicio
+        String pesoTexto = '';
+        if (idUsuario != null) {
+          final records = await _dbHelper.getRecordsByEjercicio(
+            idUsuario,
+            ejercicio['IdEjercicio'],
+          );
+          
+          if (records.isNotEmpty) {
+            // Obtener el peso más reciente (ya viene ordenado por fecha DESC)
+            pesoTexto = records.first.peso.toString();
+          }
+        }
+        
         return {
           'name': ejercicio['Nombre'],
           'description': ejercicio['Descripcion'] ?? 'Sin descripción',
@@ -139,37 +162,64 @@ class ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           'idEjercicio': ejercicio['IdEjercicio'],
           'idPartesC': widget.idPartesC,
           'idAreaM': widget.idAreaM,
-          'peso': ejercicio['Peso']?.toString() ?? 'No establecido',
+          'peso': pesoTexto, // 🔥 Peso del usuario actual desde RecordPersonal
         };
-      }).toList();
+      }),
+    );
 
-      setState(() {
-        currentExercise = {
-          'description': staticInfo['description'],
-          'advice': staticInfo['advice'],
-          'variants': variants,
-        };
-        checkedVariants = {
-          for (var variant in variants) variant['name']: false,
-        };
-        weightControllers = {
-          for (var variant in variants)
-            variant['name']: TextEditingController(text: variant['peso'] ?? ''),
-        };
-      });
+    setState(() {
+      currentExercise = {
+        'description': staticInfo['description'],
+        'advice': staticInfo['advice'],
+        'variants': variants,
+      };
+      checkedVariants = {
+        for (var variant in variants) variant['name']: false,
+      };
+      weightControllers = {
+        for (var variant in variants)
+          variant['name']: TextEditingController(text: variant['peso'] ?? ''),
+      };
+    });
+  } else {
+    setState(() {
+      zonaNombre = 'Zona no encontrada';
+      currentExercise = {
+        'description': 'Error al cargar datos',
+        'advice': 'Error al cargar datos',
+        'variants': [],
+      };
+      checkedVariants = {};
+      weightControllers = {};
+    });
+  }
+}
+
+// 🔥 AGREGAR ESTE MÉTODO NUEVO PARA RECARGAR AL CAMBIAR DE USUARIO
+Future<void> recargarPesosUsuario() async {
+  final prefs = await SharedPreferences.getInstance();
+  final idUsuario = prefs.getInt('current_user_id');
+  
+  if (idUsuario == null) return;
+  
+  // Recargar pesos para todos los ejercicios
+  for (var variant in currentExercise['variants']) {
+    final records = await _dbHelper.getRecordsByEjercicio(
+      idUsuario,
+      variant['idEjercicio'],
+    );
+    
+    if (records.isNotEmpty) {
+      // Actualizar el peso en el controller
+      weightControllers[variant['name']]?.text = records.first.peso.toString();
     } else {
-      setState(() {
-        zonaNombre = 'Zona no encontrada';
-        currentExercise = {
-          'description': 'Error al cargar datos',
-          'advice': 'Error al cargar datos',
-          'variants': [],
-        };
-        checkedVariants = {};
-        weightControllers = {};
-      });
+      // Si no hay peso registrado, limpiar el campo
+      weightControllers[variant['name']]?.text = '';
     }
   }
+  
+  setState(() {});
+}
 
   @override
   void dispose() {

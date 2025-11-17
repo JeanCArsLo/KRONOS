@@ -686,13 +686,7 @@ class DatabaseHelper {
   // 🔥 MÉTODOS PARA RecordPersonal
   // ============================================
 
-  /// Insertar un nuevo récord personal
-  Future<int> insertRecordPersonal(RecordPersonal record) async {
-    final db = await database;
-    return await db.insert('RecordPersonal', record.toMap());
-  }
-
-  /// Obtener todos los récords de un usuario
+  // Obtener todos los récords de un usuario
   Future<List<RecordPersonal>> getRecordsByUsuario(int idUsuario) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -756,11 +750,40 @@ class DatabaseHelper {
     );
   }
 
-  /// 🔥 LÓGICA COMPLETA: Registrar nuevo peso y detectar récord
-  /// Actualiza si ya existe registro del mismo día, crea nuevo si es otro día
-  /// 🔥 LÓGICA MEJORADA: Guarda el peso máximo del día automáticamente
-  /// 🔥 LÓGICA COMPLETA: Registrar peso y detectar récord con información detallada
-  /// 🔥 LÓGICA FINAL: Guarda siempre en nuevo día, celebra solo si supera récord histórico
+  /// 🔥 RECALCULAR PR: Encuentra el peso máximo real y lo marca como PR
+  Future<void> _recalcularPR(int idUsuario, int idEjercicio) async {
+    final db = await database;
+    
+    // 1️⃣ Limpiar todos los PR actuales de este ejercicio
+    await db.update(
+      'RecordPersonal',
+      {'EsRecordMaximo': 0, 'estado': 'superado'},
+      where: 'IdUsuario = ? AND IdEjercicio = ?',
+      whereArgs: [idUsuario, idEjercicio],
+    );
+    
+    // 2️⃣ Buscar el peso MÁXIMO real (en caso de empate, el más antiguo)
+    final pesoMaximo = await db.rawQuery('''
+      SELECT idRecord, Peso, Fecha 
+      FROM RecordPersonal 
+      WHERE IdUsuario = ? AND IdEjercicio = ?
+      ORDER BY Peso DESC, Fecha ASC
+      LIMIT 1
+    ''', [idUsuario, idEjercicio]);
+    
+    // 3️⃣ Si hay registros, marcar el máximo como PR
+    if (pesoMaximo.isNotEmpty) {
+      final idRecordMaximo = pesoMaximo.first['idRecord'] as int;
+      await db.update(
+        'RecordPersonal',
+        {'EsRecordMaximo': 1, 'estado': 'vigente'},
+        where: 'idRecord = ?',
+        whereArgs: [idRecordMaximo],
+      );
+    }
+  }
+
+  /// 🔥 LÓGICA MEJORADA: Permite editar libremente y recalcula PR automáticamente
   Future<Map<String, dynamic>> registrarPesoYDetectarRecord({
     required int idUsuario,
     required int idEjercicio,
@@ -783,115 +806,80 @@ class DatabaseHelper {
       );
       
       if (registroHoy.isNotEmpty) {
-        // ✏️ YA EXISTE UN REGISTRO HOY
+        // ✏️ YA EXISTE UN REGISTRO HOY → ACTUALIZAR (SIN RESTRICCIONES)
         final idRecordHoy = registroHoy.first['idRecord'] as int;
         final pesoActualHoy = registroHoy.first['Peso'] as double;
         
-        // 🚨 SI EL NUEVO PESO ES MENOR O IGUAL AL DE HOY → NO ACTUALIZAR
-        if (pesoNuevo <= pesoActualHoy) {
-          return {
-            'guardado': false,
-            'esRecord': (registroHoy.first['EsRecordMaximo'] as int) == 1,
-            'mostrarCelebracion': false,
-            'razon': 'Ya tienes $pesoActualHoy kg registrado hoy',
-            'pesoActual': pesoActualHoy,
-          };
-        }
-        
-        // ✅ EL NUEVO PESO ES MAYOR AL DE HOY → ACTUALIZAR
-        
-        // 🏆 Buscar récord ANTERIOR (excluyendo hoy)
-        final recordAnterior = await db.rawQuery('''
-          SELECT MAX(Peso) as maxPeso 
-          FROM RecordPersonal 
-          WHERE IdUsuario = ? 
-            AND IdEjercicio = ? 
-            AND DATE(Fecha) < ?
-            AND estado = 'vigente'
-        ''', [idUsuario, idEjercicio, fechaHoyStr]);
-        
-        final pesoMaximoAnterior = recordAnterior.first['maxPeso'] as double?;
-        
-        // Determinar si es récord
-        bool esRecordMaximo = pesoMaximoAnterior == null || pesoNuevo > pesoMaximoAnterior;
-        
-        // Si es récord y hay uno anterior, marcarlo como superado
-        if (esRecordMaximo && pesoMaximoAnterior != null && pesoNuevo > pesoMaximoAnterior) {
-          await db.update(
-            'RecordPersonal',
-            {'estado': 'superado', 'EsRecordMaximo': 0},
-            where: 'IdUsuario = ? AND IdEjercicio = ? AND EsRecordMaximo = 1 AND idRecord != ?',
-            whereArgs: [idUsuario, idEjercicio, idRecordHoy],
-          );
-        }
-        
-        // Actualizar el registro de hoy
+        // Actualizar el peso del registro de hoy
         await db.update(
           'RecordPersonal',
-          {
-            'Peso': pesoNuevo,
-            'EsRecordMaximo': esRecordMaximo ? 1 : 0,
-            'estado': 'vigente',
-          },
+          {'Peso': pesoNuevo},
           where: 'idRecord = ?',
           whereArgs: [idRecordHoy],
         );
         
+        // 🔄 RECALCULAR cuál debería ser el PR real
+        await _recalcularPR(idUsuario, idEjercicio);
+        
+        // Verificar si el registro actualizado quedó como PR
+        final registroActualizado = await db.query(
+          'RecordPersonal',
+          where: 'idRecord = ?',
+          whereArgs: [idRecordHoy],
+          limit: 1,
+        );
+        
+        final esRecordAhora = (registroActualizado.first['EsRecordMaximo'] as int) == 1;
+        
         return {
           'guardado': true,
-          'esRecord': esRecordMaximo,
-          'mostrarCelebracion': esRecordMaximo, // 🎉 Celebrar si supera récord histórico
-          'razon': esRecordMaximo 
-              ? '¡Nuevo récord personal!' 
-              : 'Peso actualizado (no supera el récord anterior)',
+          'esRecord': esRecordAhora,
+          'mostrarCelebracion': esRecordAhora && pesoNuevo > pesoActualHoy, // Solo celebrar si AUMENTÓ y es PR
+          'razon': esRecordAhora 
+              ? '¡Nuevo récord personal! 🏆' 
+              : 'Peso actualizado',
           'pesoActual': pesoNuevo,
+          'accion': 'actualizado',
         };
         
       } else {
-        // ➕ NO EXISTE REGISTRO HOY → CREAR NUEVO (SIEMPRE SE GUARDA)
+        // ➕ NO EXISTE REGISTRO HOY → CREAR NUEVO
         
-        // 🏆 Obtener el récord máximo histórico
-        final recordAnterior = await db.rawQuery('''
-          SELECT MAX(Peso) as maxPeso 
-          FROM RecordPersonal 
-          WHERE IdUsuario = ? 
-            AND IdEjercicio = ?
-            AND estado = 'vigente'
-        ''', [idUsuario, idEjercicio]);
+        // Insertar nuevo registro (sin marcar PR aún)
+        final idNuevoRecord = await db.insert(
+          'RecordPersonal',
+          {
+            'IdUsuario': idUsuario,
+            'IdEjercicio': idEjercicio,
+            'Peso': pesoNuevo,
+            'Fecha': fechaHoyStr,
+            'EsRecordMaximo': 0,
+            'estado': 'vigente',
+          },
+        );
         
-        final pesoMaximoAnterior = recordAnterior.first['maxPeso'] as double?;
+        // 🔄 RECALCULAR cuál debería ser el PR real
+        await _recalcularPR(idUsuario, idEjercicio);
         
-        // Determinar si es récord
-        bool esNuevoRecord = pesoMaximoAnterior == null || pesoNuevo > pesoMaximoAnterior;
+        // Verificar si el nuevo registro quedó como PR
+        final nuevoRegistro = await db.query(
+          'RecordPersonal',
+          where: 'idRecord = ?',
+          whereArgs: [idNuevoRecord],
+          limit: 1,
+        );
         
-        // Si es nuevo récord, marcar los anteriores como superados
-        if (esNuevoRecord && pesoMaximoAnterior != null) {
-          await db.update(
-            'RecordPersonal',
-            {'estado': 'superado', 'EsRecordMaximo': 0},
-            where: 'IdUsuario = ? AND IdEjercicio = ? AND EsRecordMaximo = 1',
-            whereArgs: [idUsuario, idEjercicio],
-          );
-        }
-        
-        // Insertar nuevo registro
-        await insertRecordPersonal(RecordPersonal(
-          idUsuario: idUsuario,
-          idEjercicio: idEjercicio,
-          peso: pesoNuevo,
-          fecha: fechaHoyStr,
-          esRecordMaximo: esNuevoRecord ? 1 : 0,
-          estado: 'vigente',
-        ));
+        final esRecord = (nuevoRegistro.first['EsRecordMaximo'] as int) == 1;
         
         return {
           'guardado': true,
-          'esRecord': esNuevoRecord,
-          'mostrarCelebracion': esNuevoRecord, // 🎉 Celebrar solo si es récord
-          'razon': esNuevoRecord 
-              ? '¡Nuevo récord personal!' 
-              : 'Peso registrado (nuevo día)',
+          'esRecord': esRecord,
+          'mostrarCelebracion': esRecord, // 🎉 Celebrar si es récord
+          'razon': esRecord 
+              ? '¡Nuevo récord personal! 🏆' 
+              : 'Peso registrado',
           'pesoActual': pesoNuevo,
+          'accion': 'creado',
         };
       }
       
